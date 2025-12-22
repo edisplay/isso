@@ -390,7 +390,7 @@ require-email
 Markup
 ------
 
-Customize markup and sanitized HTML. Currently, only Markdown (via Misaka) is
+Customize markup and sanitized HTML. Currently, only Markdown (via mistune) is
 supported, but new languages are relatively easy to add.
 For a more detailed explanation, see :doc:`/docs/reference/markdown-config`.
 

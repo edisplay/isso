@@ -8,7 +8,7 @@ Isso uses some of the following dependencies:
 
 - `werkzeug <https://github.com/mitsuhiko/werkzeug>`_ – WSGI toolkit
 - `itsdangerous <https://github.com/mitsuhiko/itsdangerous>`_ – store signed data on untrusted clients
-- `misaka <http://misaka.61924.nl/>`_ – fast Markdown processor written in C
+- `mistune <https://mistune.lepture.com/>`_ – a fast yet powerful Python Markdown parser
 - `html5lib <https://github.com/html5lib/html5lib-python>`_ – HTML(5) parser and sanitizer
 
 .. attention::

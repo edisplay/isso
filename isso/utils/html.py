@@ -4,7 +4,7 @@ import html
 import re
 
 import bleach
-import misaka
+import mistune
 
 
 class Sanitizer(object):
@@ -67,10 +67,12 @@ class Sanitizer(object):
 
 
 def Markdown(extensions=("autolink", "fenced-code", "no-intra-emphasis",
-                         "strikethrough", "superscript"), flags=[]):
+                         "strikethrough", "superscript"), flags=None):
 
+    if flags is None:
+        flags = []
     renderer = Unofficial(flags=flags)
-    md = misaka.Markdown(renderer, extensions=extensions)
+    md = mistune.Markdown(renderer, extensions=extensions)
 
     def inner(text):
         rv = md(text).rstrip("\n")
@@ -81,7 +83,7 @@ def Markdown(extensions=("autolink", "fenced-code", "no-intra-emphasis",
     return inner
 
 
-class Unofficial(misaka.HtmlRenderer):
+class Unofficial(mistune.HTMLRenderer):
     """A few modifications to process "common" Markdown.
 
     For instance, fenced code blocks (~~~ or ```) are just wrapped in <code>

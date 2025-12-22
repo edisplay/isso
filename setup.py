@@ -39,7 +39,7 @@ setup(
         "Programming Language :: Python :: 3.12",
     ],
     install_requires=[
-        'itsdangerous', 'Jinja2', 'misaka>=2.0,<3.0', 'html5lib',
+        'itsdangerous', 'Jinja2', 'mistune>=3.1,<4.0', 'html5lib',
         'werkzeug>=1.0', 'bleach', 'setuptools'],
     tests_require=['pytest', 'pytest-cov'],
     extras_require={
