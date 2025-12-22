@@ -48,7 +48,7 @@ RUN virtualenv --download /isso \
 
 # Install Isso's python dependencies via pip in a separate step before copying
 # over client files, so that changing Isso js/python source code will not
-p# trigger a re-installation of all pip packages from scratch
+# trigger a re-installation of all pip packages from scratch
 COPY ["setup.py", "setup.cfg", "README.md", "LICENSE", "./"]
 RUN --mount=type=cache,target=/root/.cache \
   . /isso/bin/activate \
