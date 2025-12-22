@@ -73,3 +73,6 @@ ENV/
 
 # Tox
 .tox
+
+# PyCharm/IntelliJ IDEA project files
+.idea/

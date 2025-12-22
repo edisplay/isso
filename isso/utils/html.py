@@ -66,13 +66,10 @@ class Sanitizer(object):
         return linker.linkify(clean_html)
 
 
-def Markdown(extensions=("autolink", "fenced-code", "no-intra-emphasis",
-                         "strikethrough", "superscript"), flags=None):
+def Markdown(plugins=('strikethrough', 'superscript', 'url')):
 
-    if flags is None:
-        flags = []
-    renderer = Unofficial(flags=flags)
-    md = mistune.Markdown(renderer, extensions=extensions)
+    renderer = Unofficial()
+    md = mistune.create_markdown(renderer=renderer, plugins=plugins)
 
     def inner(text):
         rv = md(text).rstrip("\n")
@@ -98,17 +95,27 @@ class Unofficial(mistune.HTMLRenderer):
 
 class Markup(object):
 
+    # Map the name of each misaka extension to a corresponding mistune plugin.
+    # The mistune plugin may be None if mistune does not support similar functionality or it is already built in.
+    _MISAKA_TO_MISTUNE = {
+        'autolink': 'url',
+        'disable-indented-code': None,
+        'fenced-code': None,
+        'footnotes': 'footnotes',
+        'highlight': None,
+        'math': 'math',
+        'no-intra-emphasis': None,
+        'quote': None,
+        'strikethrough': 'strikethrough',
+        'superscript': 'superscript',
+        'tables': 'table',
+        'underline': None,
+    }
+
     def __init__(self, conf):
-        self.flags = conf.getlist("flags")
-        self.extensions = conf.getlist("options")
+        self.plugins = self._misaka_to_mistune_plugins(conf.getlist("options"))
 
-        # Normalize render flags and extensions for misaka 2.0, which uses
-        # `dashed-case` instead of `snake_case` (misaka 1.x) for options.
-        self.flags = [x.replace("_", "-") for x in self.flags]
-        self.extensions = [x.replace("_", "-") for x in self.extensions]
-
-        parser = Markdown(extensions=self.extensions,
-                          flags=self.flags)
+        parser = Markdown(plugins=self.plugins)
         # Filter out empty strings:
         allowed_elements = [x for x in conf.getlist("allowed-elements") if x]
         allowed_attributes = [x for x in conf.getlist("allowed-attributes") if x]
@@ -122,3 +129,25 @@ class Markup(object):
 
     def render(self, text):
         return self._render(text)
+
+    def _misaka_to_mistune_plugins(self, options):
+        """Replace misaka extension names with mistune plugins.
+
+        This allows users to keep using their existing markup options and get a rendered
+        result with mistune that corresponds to misaka.
+        """
+        plugins = []
+        for option in options:
+            if option in self._MISAKA_TO_MISTUNE:
+                if self._MISAKA_TO_MISTUNE[option] is not None:
+                    # option is known misaka extension and maps to mistune plugin
+                    plugins.append(self._MISAKA_TO_MISTUNE[option])
+                else:
+                    # option is known misaka extension but has no corresponding mistune plugin or functionality
+                    # is already built in
+                    pass
+            else:
+                # option is not a known misaka extension, so we assume that it is a mistune plugin
+                plugins.append(option)
+
+        return plugins

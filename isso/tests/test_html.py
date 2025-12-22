@@ -10,26 +10,26 @@ from isso.utils import html
 class TestHTML(unittest.TestCase):
 
     def test_markdown(self):
-        convert = html.Markdown(extensions=())
+        convert = html.Markdown(plugins=())
         examples = [
             ("*Ohai!*", "<p><em>Ohai!</em></p>"),
             ("<em>Hi</em>", "<p><em>Hi</em></p>"),
             ("http://example.org/", '<p>http://example.org/</p>')]
 
-        for (input, expected) in examples:
-            self.assertEqual(convert(input), expected)
+        for (markup, expected) in examples:
+            self.assertEqual(convert(markup), expected)
 
-    def test_markdown_extensions(self):
-        convert = html.Markdown(extensions=("strikethrough", "superscript"))
+    def test_markdown_plugins(self):
+        convert = html.Markdown(plugins=("strikethrough", "superscript"))
         examples = [
             ("~~strike~~ through", "<p><del>strike</del> through</p>"),
             ("sup^(script)", "<p>sup<sup>script</sup></p>")]
 
-        for (input, expected) in examples:
-            self.assertEqual(convert(input), expected)
+        for (markup, expected) in examples:
+            self.assertEqual(convert(markup), expected)
 
     def test_github_flavoured_markdown(self):
-        convert = html.Markdown(extensions=("fenced-code", ))
+        convert = html.Markdown()
 
         # without lang
         _in = textwrap.dedent("""\
@@ -74,11 +74,11 @@ class TestHTML(unittest.TestCase):
             ('<code class="test language-cpp">Test</code>', '<code>Test</code>'),
             ('<script>alert("Onoe")</script>', 'alert("Onoe")')]
 
-        for (input, expected) in examples:
+        for (markup, expected) in examples:
             if isinstance(expected, list):
-                self.assertIn(sanitizer.sanitize(input), expected)
+                self.assertIn(sanitizer.sanitize(markup), expected)
             else:
-                self.assertEqual(sanitizer.sanitize(input), expected)
+                self.assertEqual(sanitizer.sanitize(markup), expected)
 
     def test_sanitizer_extensions(self):
         sanitizer = html.Sanitizer(elements=["img"], attributes=["src"])
@@ -86,8 +86,8 @@ class TestHTML(unittest.TestCase):
             ('<img src="cat.gif" />', '<img src="cat.gif">'),
             ('<script src="doge.js"></script>', '')]
 
-        for (input, expected) in examples:
-            self.assertEqual(sanitizer.sanitize(input), expected)
+        for (element, expected) in examples:
+            self.assertEqual(sanitizer.sanitize(element), expected)
 
     def test_render(self):
         conf = config.new({
@@ -121,11 +121,11 @@ class TestHTML(unittest.TestCase):
         self.assertEqual(renderer("foo_bar_baz"), '<p>foo_bar_baz</p>')
 
     def test_code_blocks(self):
-        convert = html.Markdown(extensions=('fenced-code',))
+        convert = html.Markdown()
         examples = [
             ("```\nThis is a code-fence. <hello>\n```", "<p><pre><code>This is a code-fence. &lt;hello&gt;\n</code></pre></p>"),
             ("```cpp\nThis is a code-fence. <hello>\n```", "<p><pre><code class=\"language-cpp\">This is a code-fence. &lt;hello&gt;\n</code></pre></p>"),
             ("    This is a four-character indent. <hello>", "<p><pre><code>This is a four-character indent. &lt;hello&gt;\n</code></pre></p>")]
 
-        for (input, expected) in examples:
-            self.assertEqual(convert(input), expected)
+        for (markup, expected) in examples:
+            self.assertEqual(convert(markup), expected)
