@@ -65,19 +65,19 @@ class Sanitizer(object):
 class Markup(object):
 
     def __init__(self, conf):
-        self.conf = conf.section('markup')
+        conf_markup = conf.section('markup')
 
-        if self.conf.get('renderer') == "misaka":
+        if conf_markup.get('renderer') == "misaka":
             # We do not want to depend on Misaka unless it is actually used
             from isso.html.misaka import MisakaMarkdown
-            self.parser = MisakaMarkdown(self.conf.section('markup.misaka'))
+            self.parser = MisakaMarkdown(conf.section('markup.misaka'))
         else:
             from isso.html.mistune import MistuneMarkdown
-            self.parser = MistuneMarkdown(self.conf.section('markup.mistune'))
+            self.parser = MistuneMarkdown(conf.section('markup.mistune'))
 
         # Filter out empty strings:
-        allowed_elements = [x for x in conf.getlist("allowed-elements") if x]
-        allowed_attributes = [x for x in conf.getlist("allowed-attributes") if x]
+        allowed_elements = [x for x in conf_markup.getlist("allowed-elements") if x]
+        allowed_attributes = [x for x in conf_markup.getlist("allowed-attributes") if x]
 
         # If images are allowed, source element should be allowed as well
         if 'img' in allowed_elements and 'src' not in allowed_attributes:

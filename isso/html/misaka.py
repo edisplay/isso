@@ -24,10 +24,8 @@ class MisakaMarkdown(Markdown):
 
     def __init__(self, conf=None):
         if conf is not None:
-            if 'flags' in conf:
-                self._flags = conf.getlist("flags")
-            if 'options' in conf:
-                self._extensions = conf.getlist("options")
+            self._flags = conf.getlist("flags")
+            self._extensions = conf.getlist("options")
 
             # Normalize render flags and extensions for Misaka 2.0, which uses
             # `dashed-case` instead of `snake_case` (Misaka 1.x) for options.

@@ -2,25 +2,33 @@ import unittest
 import textwrap
 
 from isso import config
+from isso.html import Markup
 from isso.html.misaka import MisakaMarkdown
 
 
 class TestHTMLMisaka(unittest.TestCase):
 
     def test_markdown(self):
-        convert = MisakaMarkdown(plugins=())
+        conf = config.new({
+            "markup.misaka": {
+                "options": "",
+                "flags": ""
+            }
+        })
+        convert = MisakaMarkdown(conf.section("markup.misaka"))
         examples = [
             ("*Ohai!*", "<p><em>Ohai!</em></p>"),
             ("<em>Hi</em>", "<p><em>Hi</em></p>"),
             ("http://example.org/", '<p>http://example.org/</p>')]
 
         for (markup, expected) in examples:
-            self.assertEqual(convert(markup), expected)
+            self.assertEqual(convert.render(markup), expected)
 
     def test_markdown_plugins(self):
         conf = config.new({
             "markup.misaka": {
-                "plugins": "strikethrough, superscript"
+                "options": "strikethrough, superscript",
+                "flags": ""
             }
         })
         convert = MisakaMarkdown(conf.section('markup.misaka'))
@@ -29,10 +37,16 @@ class TestHTMLMisaka(unittest.TestCase):
             ("sup^(script)", "<p>sup<sup>script</sup></p>")]
 
         for (markup, expected) in examples:
-            self.assertEqual(convert(markup), expected)
+            self.assertEqual(convert.render(markup), expected)
 
     def test_github_flavoured_markdown(self):
-        convert = MisakaMarkdown()
+        conf = config.new({
+            "markup.misaka": {
+                "options": "fenced-code",
+                "flags": ""
+            }
+        })
+        convert = MisakaMarkdown(conf.section('markup.misaka'))
 
         # without lang
         _in = textwrap.dedent("""\
@@ -47,7 +61,7 @@ class TestHTMLMisaka(unittest.TestCase):
             print("Hello, World")
             </code></pre>""")
 
-        self.assertEqual(convert(_in), _out)
+        self.assertEqual(convert.render(_in), _out)
 
         # w/ lang
         _in = textwrap.dedent("""\
@@ -65,14 +79,17 @@ class TestHTMLMisaka(unittest.TestCase):
     def test_render(self):
         conf = config.new({
             "markup": {
-                "options": "autolink",
-                "flags": "",
+                "renderer": "misaka",
                 "allowed-elements": "",
                 "allowed-attributes": ""
+            },
+            "markup.misaka": {
+                "options": "autolink",
+                "flags": ""
             }
         })
-        renderer = MisakaMarkdown(conf.section("markup")).render
-        self.assertIn(renderer("http://example.org/ and sms:+1234567890"),
+        convert = Markup(conf)
+        self.assertIn(convert.render("http://example.org/ and sms:+1234567890"),
                       ['<p><a href="http://example.org/" rel="nofollow noopener">http://example.org/</a> and sms:+1234567890</p>',
                        '<p><a rel="nofollow noopener" href="http://example.org/">http://example.org/</a> and sms:+1234567890</p>'])
 
