@@ -12,7 +12,7 @@ class TestHTMLMistune(unittest.TestCase):
         conf = config.new({
             "markup.mistune": {
                 "plugins": "",
-                "arguments": ""
+                "parameters": ""
             }
         })
         convert = MistuneMarkdown(conf.section("markup.mistune"))
@@ -28,7 +28,7 @@ class TestHTMLMistune(unittest.TestCase):
         conf = config.new({
             "markup.mistune": {
                 "plugins": "strikethrough, superscript",
-                "arguments": ""
+                "parameters": ""
             }
         })
         convert = MistuneMarkdown(conf.section('markup.mistune'))
@@ -81,7 +81,7 @@ class TestHTMLMistune(unittest.TestCase):
             },
             "markup.mistune": {
                 "plugins": "url",
-                "arguments": ""
+                "parameters": ""
             }
         })
         convert = Markup(conf)

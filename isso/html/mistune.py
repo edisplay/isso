@@ -4,7 +4,7 @@ from isso.html.markdown import Markdown
 
 
 class MistuneMarkdown(Markdown):
-    _arguments = []
+    _parameters = []
     _plugins = ('strikethrough', 'subscript', 'superscript', 'url')
 
     def __init__(self, conf=None):
@@ -14,9 +14,9 @@ class MistuneMarkdown(Markdown):
             if not self._plugins or not self._plugins[0]:
                 self._plugins = None
 
-            self._arguments = conf.getlist("arguments")
+            self._parameters = conf.getlist("parameters")
 
-        hard_wrap = True if 'hard_wrap' in self._arguments else False
+        hard_wrap = True if 'hard_wrap' in self._parameters else False
 
         # The isso.cfg syntax does not allow to set an argument like escape to False. With Misaka, HTML was not always
         # escaped, but it seems prudent to enable that here.
