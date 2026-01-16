@@ -55,13 +55,13 @@ class TestHTMLMisaka(unittest.TestCase):
             ```
             #!/usr/bin/env python
             print("Hello, World")""")
-        _out = textwrap.dedent("""\
+        _expected = textwrap.dedent("""\
             <p>Hello, World</p>
             <pre><code>#!/usr/bin/env python
             print("Hello, World")
             </code></pre>""")
 
-        self.assertEqual(convert.render(_in), _out)
+        self.assertEqual(_expected, convert.render(_in))
 
         # w/ lang
         _in = textwrap.dedent("""\
@@ -70,11 +70,13 @@ class TestHTMLMisaka(unittest.TestCase):
             ```python
             #!/usr/bin/env python
             print("Hello, World")""")
-        _out = textwrap.dedent("""\
+        _expected = textwrap.dedent("""\
             <p>Hello, World</p>
-            <pre><code class="python">#!/usr/bin/env python
+            <pre><code class="language-python">#!/usr/bin/env python
             print("Hello, World")
             </code></pre>""")
+
+        self.assertEqual(_expected, convert.render(_in))
 
     def test_render(self):
         conf = config.new({
