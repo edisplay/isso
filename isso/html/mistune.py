@@ -4,14 +4,24 @@ from isso.html.markdown import Markdown
 
 
 class MistuneMarkdown(Markdown):
+    _arguments = []
+    _plugins = ('strikethrough', 'subscript', 'superscript', 'url')
 
-    def __init__(self, conf):
-        self.plugins = conf.getlist("plugins")
-        arguments = conf.getlist("arguments")
+    def __init__(self, conf=None):
+        if conf is not None:
+            self._plugins = conf.getlist("plugins")
+            # If the list of plugins is empty, getlist returns ['']. Mistune however wants a None:
+            if not self._plugins or not self._plugins[0]:
+                self._plugins = None
 
-        escape = True if 'escape' in arguments else False
-        hard_wrap = True if 'hard_wrap' in arguments else False
-        self.md = mistune.create_markdown(escape=escape, hard_wrap=hard_wrap, plugins=self.plugins)
+            self._arguments = conf.getlist("arguments")
+
+        hard_wrap = True if 'hard_wrap' in self._arguments else False
+
+        # The isso.cfg syntax does not allow to set an argument like escape to False. With Misaka, HTML was not always
+        # escaped, but it seems prudent to enable that here.
+        # If we ever want to make escape configurable, we could add an argument no-escape.
+        self.md = mistune.create_markdown(escape=True, hard_wrap=hard_wrap, plugins=self._plugins)
 
     @property
     def _markdown(self):
