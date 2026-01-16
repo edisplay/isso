@@ -96,19 +96,17 @@ class TestHTMLMisaka(unittest.TestCase):
     def test_sanitized_render_extensions(self):
         """Options should be normalized from both dashed-case or snake_case (legacy)"""
         conf = config.new({
-            "markup": {
+            "markup.misaka": {
                 "options": "no_intra_emphasis",  # Deliberately snake_case
                 "flags": "",
-                "allowed-elements": "",
-                "allowed-attributes": ""
             }
         })
-        renderer = MisakaMarkdown(conf.section("markup")).render
-        self.assertEqual(renderer("foo_bar_baz"), '<p>foo_bar_baz</p>')
+        convert = MisakaMarkdown(conf.section('markup.misaka'))
+        self.assertEqual(convert.render("foo_bar_baz"), '<p>foo_bar_baz</p>')
 
-        conf.set("markup", "options", "no-intra-emphasis")  # dashed-case
-        renderer = MisakaMarkdown(conf.section("markup")).render
-        self.assertEqual(renderer("foo_bar_baz"), '<p>foo_bar_baz</p>')
+        conf.set("markup.misaka", "options", "no-intra-emphasis")  # dashed-case
+        convert = MisakaMarkdown(conf.section('markup.misaka'))
+        self.assertEqual(convert.render("foo_bar_baz"), '<p>foo_bar_baz</p>')
 
     def test_code_blocks(self):
         convert = MisakaMarkdown()
