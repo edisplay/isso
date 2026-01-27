@@ -18,9 +18,9 @@ class MistuneMarkdown(Markdown):
 
         hard_wrap = True if 'hard_wrap' in self._parameters else False
 
-        # The isso.cfg syntax does not allow to set an argument like escape to False. With Misaka, HTML was not always
+        # The isso.cfg syntax does not allow to set a parameter like escape to False. With Misaka, HTML was not always
         # escaped, but it seems prudent to enable that here.
-        # If we ever want to make escape configurable, we could add an argument no-escape.
+        # If we ever want to make escape configurable, we could add a parameter no-escape.
         self.md = mistune.create_markdown(escape=True, hard_wrap=hard_wrap, plugins=self._plugins)
 
     @property
