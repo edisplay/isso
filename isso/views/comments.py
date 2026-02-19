@@ -335,9 +335,12 @@ class API(object):
         if not valid:
             return BadRequest(reason)
 
-        for field in ("author", "email", "website"):
+        for field in ("author", "email"):
             if data.get(field) is not None:
                 data[field] = escape(data[field], quote=False)
+
+        if data.get("website") is not None:
+            data["website"] = escape(data["website"], quote=True)
 
         if data.get("website"):
             data["website"] = normalize(data["website"])
@@ -547,6 +550,13 @@ class API(object):
         valid, reason = API.verify(data)
         if not valid:
             return BadRequest(reason)
+
+        for field in ("author",):
+            if data.get(field) is not None:
+                data[field] = escape(data[field], quote=False)
+
+        if data.get("website") is not None:
+            data["website"] = escape(data["website"], quote=True)
 
         data['modified'] = time.time()
 
@@ -794,6 +804,21 @@ class API(object):
             return Response("Comment has been activated", 200)
         elif action == "edit":
             data = request.json
+
+            for key in set(data.keys()) - set(["text", "author", "website"]):
+                data.pop(key)
+
+            valid, reason = API.verify(data)
+            if not valid:
+                return BadRequest(reason)
+
+            for field in ("author",):
+                if data.get(field) is not None:
+                    data[field] = escape(data[field], quote=False)
+
+            if data.get("website") is not None:
+                data["website"] = escape(data["website"], quote=True)
+
             with self.isso.lock:
                 rv = self.comments.update(id, data)
             for key in set(rv.keys()) - API.FIELDS:

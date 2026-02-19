@@ -69,6 +69,22 @@ class TestComments(unittest.TestCase):
         self.assertEqual(rv["mode"], 1)
         self.assertEqual(rv["text"], '<p>Lorem ipsum ...</p>')
 
+    def testWebsiteXSSPayloadIsEscaped(self):
+        """Website field with XSS payload must have quotes HTML-escaped."""
+        payload = "http://x.com/?'onmouseover='alert(document.domain)'x='"
+        rv = self.post('/new?uri=%2Fpath%2F',
+                       data=json.dumps({'text': 'Hello', 'website': payload}))
+        self.assertEqual(rv.status_code, 201)
+        rv = loads(rv.data)
+        # Single quotes must be HTML-escaped so they cannot break out of an
+        # HTML attribute context (e.g. href='...')
+        self.assertNotIn("'", rv["website"])
+        self.assertNotIn('"', rv["website"])
+        self.assertEqual(
+            rv["website"],
+            "http://x.com/?&#x27;onmouseover=&#x27;alert(document.domain)&#x27;x=&#x27;",
+        )
+
     def textCreateWithNonAsciiText(self):
 
         rv = self.post('/new?uri=%2Fpath%2F',
@@ -390,6 +406,27 @@ class TestComments(unittest.TestCase):
         self.assertEqual(rv['author'], 'me')
         self.assertEqual(rv['website'], 'http://example.com/')
         self.assertIn('modified', rv)
+
+    def testUpdateWebsiteXSSPayloadIsEscaped(self):
+        """Website and author XSS payloads via edit endpoint must be HTML-escaped."""
+        self.post('/new?uri=%2Fpath%2F', data=json.dumps({'text': 'Lorem ipsum ...'}))
+
+        website_payload = "http://x.com/?'onmouseover='alert(document.domain)'x='"
+        author_payload = "<script>alert(1)</script>"
+        self.put('/id/1', data=json.dumps({
+            'text': 'Hello World',
+            'author': author_payload,
+            'website': website_payload,
+        }))
+
+        rv = loads(self.get('/id/1?plain=1').data)
+        self.assertNotIn("'", rv["website"])
+        self.assertEqual(
+            rv["website"],
+            "http://x.com/?&#x27;onmouseover=&#x27;alert(document.domain)&#x27;x=&#x27;",
+        )
+        self.assertNotIn("<script>", rv["author"])
+        self.assertEqual(rv["author"], "&lt;script&gt;alert(1)&lt;/script&gt;")
 
     def testUpdateForbidden(self):
 
@@ -860,6 +897,34 @@ class TestModeratedComments(unittest.TestCase):
 
         # Comment should no longer exist
         self.assertEqual(self.app.db.comments.get(id_), None)
+
+    def testModerateEditXSSPayloadIsEscaped(self):
+        """XSS payloads in author/website via moderate edit endpoint must be HTML-escaped."""
+        id_ = 1
+        signed = self.app.sign(id_)
+
+        self.client.post('/new?uri=/moderated', data=json.dumps({"text": "..."}))
+
+        website_payload = "http://x.com/?'onmouseover='alert(document.domain)'x='"
+        author_payload = "<script>alert(1)</script>"
+        rv = self.client.post(
+            '/id/%d/edit/%s' % (id_, signed),
+            data=json.dumps({
+                "text": "new text",
+                "author": author_payload,
+                "website": website_payload,
+            }),
+        )
+        self.assertEqual(rv.status_code, 200)
+
+        stored = self.app.db.comments.get(id_)
+        self.assertNotIn("'", stored["website"])
+        self.assertEqual(
+            stored["website"],
+            "http://x.com/?&#x27;onmouseover=&#x27;alert(document.domain)&#x27;x=&#x27;",
+        )
+        self.assertNotIn("<script>", stored["author"])
+        self.assertEqual(stored["author"], "&lt;script&gt;alert(1)&lt;/script&gt;")
 
 
 class TestUnsubscribe(unittest.TestCase):
