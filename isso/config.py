@@ -3,15 +3,15 @@
 import datetime
 import logging
 import os
-import pkg_resources
 import re
 
 from email.utils import parseaddr, formataddr
 from configparser import ConfigParser, NoOptionError, NoSectionError, DuplicateSectionError
+from importlib.resources import files
 
 logger = logging.getLogger("isso")
 
-default_config_file = pkg_resources.resource_filename('isso', 'isso.cfg')
+default_config_file = str(files('isso').joinpath('isso.cfg'))
 
 
 def timedelta(string):

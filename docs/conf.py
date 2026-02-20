@@ -15,7 +15,6 @@
 import sys
 import io
 import re
-import pkg_resources
 
 from os.path import dirname, join
 # Make `_theme` custom sphinx theme available

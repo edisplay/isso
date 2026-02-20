@@ -5,9 +5,9 @@ import re
 import time
 import functools
 import json  # json.dumps to put URL in <script>
-import pkg_resources
 
 from configparser import NoOptionError
+from importlib.resources import files
 from datetime import datetime, timedelta
 from html import escape
 from io import BytesIO as StringIO
@@ -1416,7 +1416,7 @@ class API(object):
         </body>
     """
     def demo(self, env, req):
-        index = pkg_resources.resource_filename('isso', 'demo/index.html')
+        index = str(files('isso').joinpath('demo/index.html'))
         return send_from_directory(os_path.dirname(index), 'index.html', env)
 
     """

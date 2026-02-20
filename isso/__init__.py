@@ -25,8 +25,8 @@
 #
 # Isso – a lightweight Disqus alternative
 
-import pkg_resources
-dist = pkg_resources.get_distribution("isso")
+from importlib.metadata import version
+__version__ = version("isso")
 
 # check if exectuable is `isso` and gevent is available
 import sys
@@ -232,7 +232,7 @@ def main():
     subparser = parser.add_subparsers(help="commands", dest="command")
 
     parser.add_argument('--version', action='version',
-                        version='%(prog)s ' + dist.version)
+                        version='%(prog)s ' + __version__)
     parser.add_argument("-c", dest="conf", default="/etc/isso.cfg",
                         metavar="/etc/isso.cfg", help="set configuration file")
 

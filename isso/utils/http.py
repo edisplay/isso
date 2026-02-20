@@ -6,7 +6,7 @@ import http.client as httplib
 
 from urllib.parse import urlparse
 
-from isso import dist
+from isso import __version__
 from isso.wsgi import urlsplit
 
 MAX_RETRY_COUNT = 3
@@ -24,7 +24,7 @@ class curl(object):
     """
 
     headers = {
-        "User-Agent": "Isso/{0} (+https://isso-comments.de)".format(dist.version)
+        "User-Agent": "Isso/{0} (+https://isso-comments.de)".format(__version__)
     }
 
     def __init__(self, method, host, path, timeout=3):

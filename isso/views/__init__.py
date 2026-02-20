@@ -1,7 +1,7 @@
 # -*- encoding: utf-8 -*-
 
-import pkg_resources
-dist = pkg_resources.get_distribution("isso")
+from importlib.metadata import version
+__version__ = version("isso")
 
 import json
 
@@ -81,7 +81,7 @@ class Info(object):
     def show(self, environ, request):
 
         rv = {
-            "version": dist.version,
+            "version": __version__,
             "host": str(local("host")),
             "origin": str(local("origin")),
             "moderation": self.moderation,
