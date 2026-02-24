@@ -16,6 +16,7 @@ New Features
 - admin: Add log out button (`#870`_, bbaovanc)
 - Add support for environment variables in config (`#1037`_, pkvach)
 - Add Japanese localisation (`#1051`_, zurukumo)
+- Add Indonesian localisation (`#1088`_, suhindra)
 - Add Mistune as new default Markdown rendering engine (`#1079`_, ritzmann)
 
 .. _#870: https://github.com/posativ/isso/pull/870
@@ -27,6 +28,7 @@ New Features
 .. _#1005: https://github.com/isso-comments/isso/pull/1005
 .. _#1037: https://github.com/isso-comments/isso/pull/1037
 .. _#1051: https://github.com/isso-comments/isso/pull/1051
+.. _#1088: https://github.com/isso-comments/isso/pull/1088
 .. _#1079: https://github.com/isso-comments/isso/pull/1079
 
 Breaking Changes
