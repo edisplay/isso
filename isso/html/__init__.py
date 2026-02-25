@@ -1,6 +1,9 @@
+import logging
 import re
 
 import bleach
+
+logger = logging.getLogger("isso")
 
 
 class Sanitizer(object):
@@ -67,13 +70,16 @@ class Markup(object):
     def __init__(self, conf):
         conf_markup = conf.section('markup')
 
-        if conf_markup.get('renderer') == "misaka":
+        if conf_markup.get('renderer') == "mistune":
+            from isso.html.mistune import MistuneMarkdown
+            self.parser = MistuneMarkdown(conf.section('markup.mistune'))
+            logging.info("Using Mistune as Markdown rendering engine")
+        else:
             # We do not want to depend on Misaka unless it is actually used
             from isso.html.misaka import MisakaMarkdown
             self.parser = MisakaMarkdown(conf)
-        else:
-            from isso.html.mistune import MistuneMarkdown
-            self.parser = MistuneMarkdown(conf.section('markup.mistune'))
+            logging.warning("Misaka has been deprecated. Please switch to Mistune for "
+                            "Markdown rendering before the next release.")
 
         # Filter out empty strings:
         allowed_elements = [x for x in conf_markup.getlist("allowed-elements") if x]
