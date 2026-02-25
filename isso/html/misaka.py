@@ -68,6 +68,8 @@ class MisakaMarkdown(Markdown):
             self._flags = [x.replace("_", "-") for x in self._flags]
             self._extensions = [x.replace("_", "-") for x in self._extensions]
 
+        logging.info("Loading Misaka with options: [%s] and flags: [%s]", self._extensions, self._flags)
+
         renderer = Unofficial(flags=self._flags)
         self.md = misaka.Markdown(renderer, extensions=self._extensions)
 

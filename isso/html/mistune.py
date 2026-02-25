@@ -1,6 +1,10 @@
+import logging
+
 import mistune
 
 from isso.html.markdown import Markdown
+
+logger = logging.getLogger("isso")
 
 
 class MistuneMarkdown(Markdown):
@@ -17,6 +21,8 @@ class MistuneMarkdown(Markdown):
             self._parameters = conf.getlist("parameters")
 
         hard_wrap = True if 'hard_wrap' in self._parameters else False
+
+        logging.info("Loading Mistune with plugins: [%s] and parameters: [%s]", self._plugins, self._parameters)
 
         # The isso.cfg syntax does not allow to set a parameter like escape to False. With Misaka, HTML was not always
         # escaped, but it seems prudent to enable that here.
