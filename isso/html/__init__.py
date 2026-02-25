@@ -74,8 +74,7 @@ class Markup(object):
             from isso.html.mistune import MistuneMarkdown
             self.parser = MistuneMarkdown(conf.section('markup.mistune'))
             logging.info("Using Mistune as Markdown rendering engine")
-        elif ((not conf_markup.has_option('renderer')) or
-              (conf_markup.has_option('renderer') and conf_markup.get('renderer') == "misaka")):
+        elif not conf_markup.has_option('renderer') or conf_markup.get('renderer') == "misaka":
             # We do not want to depend on Misaka unless it is actually used
             from isso.html.misaka import MisakaMarkdown
             self.parser = MisakaMarkdown(conf)
