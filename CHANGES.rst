@@ -17,7 +17,7 @@ New Features
 - Add support for environment variables in config (`#1037`_, pkvach)
 - Add Japanese localisation (`#1051`_, zurukumo)
 - Add Indonesian localisation (`#1088`_, suhindra)
-- Add Mistune as new default Markdown rendering engine (`#1079`_, ritzmann)
+- Add Mistune as new Markdown rendering engine (`#1079`_, ritzmann)
 
 .. _#870: https://github.com/posativ/isso/pull/870
 .. _#966: https://github.com/posativ/isso/pull/966
