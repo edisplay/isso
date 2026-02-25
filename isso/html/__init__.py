@@ -70,16 +70,23 @@ class Markup(object):
     def __init__(self, conf):
         conf_markup = conf.section('markup')
 
-        if conf_markup.get('renderer') == "mistune":
+        if conf_markup.has_option('renderer') and conf_markup.get('renderer') == "mistune":
             from isso.html.mistune import MistuneMarkdown
             self.parser = MistuneMarkdown(conf.section('markup.mistune'))
             logging.info("Using Mistune as Markdown rendering engine")
-        else:
+        elif ((not conf_markup.has_option('renderer')) or
+              (conf_markup.has_option('renderer') and conf_markup.get('renderer') == "misaka")):
             # We do not want to depend on Misaka unless it is actually used
             from isso.html.misaka import MisakaMarkdown
             self.parser = MisakaMarkdown(conf)
             logging.warning("Misaka has been deprecated. Please switch to Mistune for "
                             "Markdown rendering before the next release.")
+        else:
+            logging.fatal('The `renderer` configuration option is set to an unknown value: %s. '
+                          'Set to either `mistune` or `misaka`.',
+                          conf_markup.get('renderer'))
+            raise ValueError("Invalid renderer value: %s. Set to either `mistune` or `misaka`."
+                             % conf_markup.get('renderer'))
 
         # Filter out empty strings:
         allowed_elements = [x for x in conf_markup.getlist("allowed-elements") if x]
