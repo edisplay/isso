@@ -61,10 +61,10 @@ from werkzeug.middleware.profiler import ProfilerMiddleware
 local = Local()
 local_manager = LocalManager([local])
 
-from isso import config, db, migrate, wsgi, ext, views
+from isso import config, db, migrate, wsgi, ext, views, html
 from isso.core import ThreadedMixin, ProcessMixin, uWSGIMixin
 from isso.wsgi import origin, urlsplit
-from isso.utils import http, JSONRequest, JSONResponse, html, hash
+from isso.utils import http, JSONRequest, JSONResponse, hash
 from isso.views import comments
 
 from isso.ext.notifications import Stdout, SMTP
@@ -102,7 +102,7 @@ class Isso(object):
         self.db = db.SQLite3(conf.get('general', 'dbpath'), conf)
         self.signer = URLSafeTimedSerializer(
             self.db.preferences.get("session-key"))
-        self.markup = html.Markup(conf.section('markup'))
+        self.markup = html.Markup(conf)
         self.hasher = hash.new(conf.section("hash"))
 
         super(Isso, self).__init__(conf)

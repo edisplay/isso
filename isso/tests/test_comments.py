@@ -682,12 +682,13 @@ class TestComments(unittest.TestCase):
 
     def testPreview(self):
         response = self.post(
-            '/preview', data=json.dumps({'text': 'This is **mark***down*'}))
+            '/preview', data=json.dumps({'text': 'This is **mark**_down_'}))
         self.assertEqual(response.status_code, 200)
 
         rv = loads(response.data)
         self.assertEqual(
-            rv["text"], '<p>This is <strong>mark</strong><em>down</em></p>')
+            '<p>This is <strong>mark</strong><em>down</em></p>',
+            rv["text"])
 
     def testTitleNull(self):
         # Thread title set to `null` in API request

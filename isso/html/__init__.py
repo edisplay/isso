@@ -1,10 +1,9 @@
-# -*- encoding: utf-8 -*-
-
-import html
+import logging
 import re
 
 import bleach
-import misaka
+
+logger = logging.getLogger("isso")
 
 
 class Sanitizer(object):
@@ -18,7 +17,7 @@ class Sanitizer(object):
 
     def __init__(self, elements, attributes):
         # attributes found in Sundown's HTML serializer [1]
-        # - except for <img> tag, because images are not generated anyways.
+        # - except for <img> tag, because images are not generated anyway.
         # - sub and sup added
         #
         # [1] https://github.com/vmg/sundown/blob/master/html/html.c
@@ -66,57 +65,36 @@ class Sanitizer(object):
         return linker.linkify(clean_html)
 
 
-def Markdown(extensions=("autolink", "fenced-code", "no-intra-emphasis",
-                         "strikethrough", "superscript"), flags=[]):
-
-    renderer = Unofficial(flags=flags)
-    md = misaka.Markdown(renderer, extensions=extensions)
-
-    def inner(text):
-        rv = md(text).rstrip("\n")
-        if rv.startswith("<p>") or rv.endswith("</p>"):
-            return rv
-        return "<p>" + rv + "</p>"
-
-    return inner
-
-
-class Unofficial(misaka.HtmlRenderer):
-    """A few modifications to process "common" Markdown.
-
-    For instance, fenced code blocks (~~~ or ```) are just wrapped in <code>
-    which does not preserve line breaks. If a language is given, it is added
-    to <code class="language-$lang">, compatible with Highlight.js.
-    """
-
-    def blockcode(self, text, lang):
-        lang = ' class="language-{0}"'.format(html.escape(lang)) if lang else ''
-        return "<pre><code{1}>{0}</code></pre>\n".format(html.escape(text, False), lang)
-
-
 class Markup(object):
 
     def __init__(self, conf):
-        self.flags = conf.getlist("flags")
-        self.extensions = conf.getlist("options")
+        conf_markup = conf.section('markup')
 
-        # Normalize render flags and extensions for misaka 2.0, which uses
-        # `dashed-case` instead of `snake_case` (misaka 1.x) for options.
-        self.flags = [x.replace("_", "-") for x in self.flags]
-        self.extensions = [x.replace("_", "-") for x in self.extensions]
+        if conf_markup.has_option('renderer') and conf_markup.get('renderer') == "mistune":
+            from isso.html.mistune import MistuneMarkdown
+            self.parser = MistuneMarkdown(conf.section('markup.mistune'))
+            logging.info("Using Mistune as Markdown rendering engine")
+        elif not conf_markup.has_option('renderer') or conf_markup.get('renderer') == "misaka":
+            # We do not want to depend on Misaka unless it is actually used
+            from isso.html.misaka import MisakaMarkdown
+            self.parser = MisakaMarkdown(conf)
+            logging.warning("Misaka has been deprecated. Please switch to Mistune for "
+                            "Markdown rendering before the next release.")
+        else:
+            logging.fatal('The `renderer` configuration option is set to an unknown value: %s. '
+                          'Set to either `mistune` or `misaka`.',
+                          conf_markup.get('renderer'))
+            raise ValueError("Invalid renderer value: %s. Set to either `mistune` or `misaka`."
+                             % conf_markup.get('renderer'))
 
-        parser = Markdown(extensions=self.extensions,
-                          flags=self.flags)
         # Filter out empty strings:
-        allowed_elements = [x for x in conf.getlist("allowed-elements") if x]
-        allowed_attributes = [x for x in conf.getlist("allowed-attributes") if x]
+        allowed_elements = [x for x in conf_markup.getlist("allowed-elements") if x]
+        allowed_attributes = [x for x in conf_markup.getlist("allowed-attributes") if x]
 
         # If images are allowed, source element should be allowed as well
         if 'img' in allowed_elements and 'src' not in allowed_attributes:
             allowed_attributes.append('src')
-        sanitizer = Sanitizer(allowed_elements, allowed_attributes)
-
-        self._render = lambda text: sanitizer.sanitize(parser(text))
+        self.sanitizer = Sanitizer(allowed_elements, allowed_attributes)
 
     def render(self, text):
-        return self._render(text)
+        return self.sanitizer.sanitize(self.parser.render(text))

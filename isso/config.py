@@ -61,6 +61,12 @@ class Section(object):
         self.conf = conf
         self.section = section
 
+    def has_option(self, key):
+        """
+        Return true if key exists in section, regardless if a value was set or not. Return false otherwise.
+        """
+        return self.conf.has_option(self.section, key)
+
     def get(self, key):
         return self.conf.get(self.section, key)
 
@@ -94,8 +100,7 @@ class IssoParser(ConfigParser):
                              values. This is especially important for parsing
                              passwords that might contain '%'
         """
-        return super(IssoParser, self).__init__(
-            allow_no_value=True, interpolation=None, *args, **kwargs)
+        super(IssoParser, self).__init__(allow_no_value=True, interpolation=None, *args, **kwargs)
 
     def get(self, section, key, **kwargs):
         value = super(IssoParser, self).get(section, key, **kwargs)
@@ -183,11 +188,11 @@ def load(default, user=None):
     # Warn on trailing slash which can result in malformed double-slashed URLs
     if parser.get("server", "public-endpoint").endswith("/"):
         public_endpoint = parser.get("server", "public-endpoint")
-        logger.warn("In your config file, '[server] public-endpoint' has a slash at the end, "
-                    "please remove it: '%s' -> '%s'",
-                    public_endpoint, public_endpoint.rstrip("/"))
+        logger.warning("In your config file, '[server] public-endpoint' has a slash at the end, "
+                       "please remove it: '%s' -> '%s'",
+                       public_endpoint, public_endpoint.rstrip("/"))
         # XXX Actually fail here in a future version
-        logger.warn("A future version of Isso might quit with an error if 'public-endpoint' is set incorrectly")
+        logger.warning("A future version of Isso might quit with an error if 'public-endpoint' is set incorrectly")
         # Remove trailing slash
         parser.set("server", "public-endpoint", public_endpoint.rstrip("/"))
 
