@@ -507,7 +507,7 @@ flags
 .. _markup-mistune:
 
 Markup.mistune
-^^^^^^^^^^^^^
+^^^^^^^^^^^^^^
 
 Customize the Mistune Markdown to HTML renderer.
 
