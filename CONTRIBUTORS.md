@@ -123,5 +123,8 @@ In chronological order:
   * Fixing minor code inconsistencies
   * Testing for moderation and unsubscribe
 
+* Fabian Ritzmann @ritzmann
+  * Add Mistune as new default Markdown rendering engine
+
 * [Your name or handle] <[email or website]>
   * [Brief summary of your changes]

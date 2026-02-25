@@ -16,6 +16,7 @@ New Features
 - admin: Add log out button (`#870`_, bbaovanc)
 - Add support for environment variables in config (`#1037`_, pkvach)
 - Add Japanese localisation (`#1051`_, zurukumo)
+- Add Mistune as new default Markdown rendering engine (`#1079`_, ritzmann)
 
 .. _#870: https://github.com/posativ/isso/pull/870
 .. _#966: https://github.com/posativ/isso/pull/966
@@ -26,6 +27,7 @@ New Features
 .. _#1005: https://github.com/isso-comments/isso/pull/1005
 .. _#1037: https://github.com/isso-comments/isso/pull/1037
 .. _#1051: https://github.com/isso-comments/isso/pull/1051
+.. _#1079: https://github.com/isso-comments/isso/pull/1079
 
 Breaking Changes
 ^^^^^^^^^^^^^^^^
@@ -36,6 +38,8 @@ Breaking Changes
   (tagged) version
 - Disavow IE10 compatibility: (Not-so) recent changes mean that Isso is no
   longer compatible (`#1022`, ix5)
+- The Markdown rendering engine now defaults to Mistune, see
+  :doc:`Migration from Misaka to Mistune <guides/mistune>` for differences to Misaka.
 
 .. _#970: https://github.com/isso-comments/isso/pull/970
 .. _#1022: https://github.com/isso-comments/isso/pull/1022
