@@ -18,21 +18,21 @@ def host(environ):  # pragma: no cover
     of http://www.python.org/dev/peps/pep-0333/#url-reconstruction
     """
 
-    url = environ['wsgi.url_scheme'] + '://'
+    url = environ["wsgi.url_scheme"] + "://"
 
-    if environ.get('HTTP_HOST'):
-        url += environ['HTTP_HOST']
+    if environ.get("HTTP_HOST"):
+        url += environ["HTTP_HOST"]
     else:
-        url += environ['SERVER_NAME']
+        url += environ["SERVER_NAME"]
 
-        if environ['wsgi.url_scheme'] == 'https':
-            if environ['SERVER_PORT'] != '443':
-                url += ':' + environ['SERVER_PORT']
+        if environ["wsgi.url_scheme"] == "https":
+            if environ["SERVER_PORT"] != "443":
+                url += ":" + environ["SERVER_PORT"]
         else:
-            if environ['SERVER_PORT'] != '80':
-                url += ':' + environ['SERVER_PORT']
+            if environ["SERVER_PORT"] != "80":
+                url += ":" + environ["SERVER_PORT"]
 
-    return url + quote(environ.get('SCRIPT_NAME', ''))
+    return url + quote(environ.get("SCRIPT_NAME", ""))
 
 
 def urlsplit(name):
@@ -40,16 +40,16 @@ def urlsplit(name):
     Parse :param:`name` into (netloc, port, ssl)
     """
 
-    if not isinstance(name, (str, )):
+    if not isinstance(name, (str,)):
         name = str(name)
 
-    if not name.startswith(('http://', 'https://')):
-        name = 'http://' + name
+    if not name.startswith(("http://", "https://")):
+        name = "http://" + name
 
     rv = urlparse(name)
-    if rv.scheme == 'https' and rv.port is None:
+    if rv.scheme == "https" and rv.port is None:
         return rv.netloc, 443, True
-    return rv.netloc.rsplit(':')[0], rv.port or 80, rv.scheme == 'https'
+    return rv.netloc.rsplit(":")[0], rv.port or 80, rv.scheme == "https"
 
 
 def urljoin(netloc, port, ssl):
@@ -72,7 +72,6 @@ def origin(hosts):
     hosts = [urlsplit(h) for h in hosts]
 
     def func(environ):
-
         if not hosts:
             return "http://invalid.local"
 
@@ -91,18 +90,16 @@ def origin(hosts):
 
 
 class SubURI(object):
-
     def __init__(self, app):
         self.app = app
 
     def __call__(self, environ, start_response):
-
-        script_name = environ.get('HTTP_X_SCRIPT_NAME')
+        script_name = environ.get("HTTP_X_SCRIPT_NAME")
         if script_name:
-            environ['SCRIPT_NAME'] = script_name
-            path_info = environ['PATH_INFO']
+            environ["SCRIPT_NAME"] = script_name
+            path_info = environ["PATH_INFO"]
             if path_info.startswith(script_name):
-                environ['PATH_INFO'] = path_info[len(script_name):]
+                environ["PATH_INFO"] = path_info[len(script_name) :]
 
         return self.app(environ, start_response)
 
@@ -119,19 +116,15 @@ class CORSMiddleware(object):
         self.exposed = exposed
 
     def __call__(self, environ, start_response):
-
         def add_cors_headers(status, headers, exc_info=None):
             headers = Headers(headers)
             headers.add("Access-Control-Allow-Origin", self.origin(environ))
             headers.add("Access-Control-Allow-Credentials", "true")
-            headers.add("Access-Control-Allow-Methods",
-                        ", ".join(self.methods))
+            headers.add("Access-Control-Allow-Methods", ", ".join(self.methods))
             if self.allowed:
-                headers.add("Access-Control-Allow-Headers",
-                            ", ".join(self.allowed))
+                headers.add("Access-Control-Allow-Headers", ", ".join(self.allowed))
             if self.exposed:
-                headers.add("Access-Control-Expose-Headers",
-                            ", ".join(self.exposed))
+                headers.add("Access-Control-Expose-Headers", ", ".join(self.exposed))
             return start_response(status, headers.to_wsgi_list(), exc_info)
 
         if environ.get("REQUEST_METHOD") == "OPTIONS":
@@ -142,7 +135,6 @@ class CORSMiddleware(object):
 
 
 class Request(_Request):
-
     # Assuming UTF-8, comments with 65536 characters would consume
     # 128 kb memory. The remaining 128 kb cover additional parameters
     # and WSGI headers.
@@ -150,7 +142,6 @@ class Request(_Request):
 
 
 class SocketWSGIRequestHandler(WSGIRequestHandler):
-
     def run_wsgi(self):
         self.client_address = ("<local>", 0)
         super(SocketWSGIRequestHandler, self).run_wsgi()

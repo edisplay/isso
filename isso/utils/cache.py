@@ -62,7 +62,6 @@ class NullCache(BaseCache):
 
 
 class SimpleCache(BaseCache):
-
     """Simple memory cache for single process environments.  This class exists
     mainly for the development server and is not 100% thread safe.  It tries
     to use as many atomic operations as possible and no locks for simplicity
@@ -95,12 +94,7 @@ class SimpleCache(BaseCache):
             self._cache.pop(k, None)
 
     def _remove_older(self):
-        k_ordered = (
-            k
-            for k, v in sorted(
-                self._cache.items(), key=lambda item: item[1][0]
-            )
-        )
+        k_ordered = (k for k, v in sorted(self._cache.items(), key=lambda item: item[1][0]))
         for k in k_ordered:
             self._cache.pop(k, None)
             if not self._over_threshold():

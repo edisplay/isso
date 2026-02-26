@@ -37,7 +37,6 @@ class Cache:
 
 
 class Mixin(object):
-
     def __init__(self, conf):
         self.lock = threading.Lock()
         self.cache = Cache(NullCache())
@@ -52,15 +51,13 @@ def threaded(func):
     """
 
     def dec(self, *args, **kwargs):
-        thread.start_new_thread(func, (self, ) + args, kwargs)
+        thread.start_new_thread(func, (self,) + args, kwargs)
 
     return dec
 
 
 class ThreadedMixin(Mixin):
-
     def __init__(self, conf):
-
         super(ThreadedMixin, self).__init__(conf)
 
         if conf.getboolean("moderation", "enabled"):
@@ -77,9 +74,7 @@ class ThreadedMixin(Mixin):
 
 
 class ProcessMixin(ThreadedMixin):
-
     def __init__(self, conf):
-
         super(ProcessMixin, self).__init__(conf)
         self.lock = multiprocessing.Lock()
 
@@ -107,9 +102,7 @@ class uWSGICache(object):
 
 
 class uWSGIMixin(Mixin):
-
     def __init__(self, conf):
-
         super(uWSGIMixin, self).__init__(conf)
 
         self.lock = multiprocessing.Lock()
@@ -119,6 +112,7 @@ class uWSGIMixin(Mixin):
 
         def purge(signum):
             return self.db.comments.purge(timedelta)
+
         uwsgi.register_signal(1, "", purge)
         uwsgi.add_timer(1, timedelta)
 

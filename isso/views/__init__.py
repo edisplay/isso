@@ -1,6 +1,7 @@
 # -*- encoding: utf-8 -*-
 
 from importlib.metadata import version
+
 __version__ = version("isso")
 
 import json
@@ -30,15 +31,13 @@ class requires:
 
     def __call__(self, func):
         def dec(cls, env, req, *args, **kwargs):
-
             if self.param not in req.args:
                 raise BadRequest("missing %s query" % self.param)
 
             try:
                 kwargs[self.param] = self.type(req.args[self.param])
             except TypeError:
-                raise BadRequest("invalid type for %s, expected %s" %
-                                 (self.param, self.type))
+                raise BadRequest("invalid type for %s, expected %s" % (self.param, self.type))
 
             return func(cls, env, req, *args, **kwargs)
 
@@ -46,10 +45,9 @@ class requires:
 
 
 class Info(object):
-
     def __init__(self, isso):
         self.moderation = isso.conf.getboolean("moderation", "enabled")
-        isso.urls.add(Rule('/info', endpoint=self.show))
+        isso.urls.add(Rule("/info", endpoint=self.show))
 
     """
     @api {get} /info Server info
@@ -78,8 +76,8 @@ class Info(object):
           "moderation": true
         }
     """
-    def show(self, environ, request):
 
+    def show(self, environ, request):
         rv = {
             "version": __version__,
             "host": str(local("host")),

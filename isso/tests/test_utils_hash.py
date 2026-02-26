@@ -8,7 +8,6 @@ from isso.utils.hash import Hash, PBKDF2, new
 
 
 class TestHasher(unittest.TestCase):
-
     def test_hash(self):
         self.assertRaises(TypeError, Hash, "Foo")
 
@@ -19,7 +18,7 @@ class TestHasher(unittest.TestCase):
 
         self.assertRaises(TypeError, h.hash, "...")
         self.assertEqual(h.hash(b"..."), b"...")
-        self.assertIsInstance(h.uhash("..."), (str, ))
+        self.assertIsInstance(h.uhash("..."), (str,))
 
     def test_uhash(self):
         h = Hash(b"", func=None)
@@ -27,7 +26,6 @@ class TestHasher(unittest.TestCase):
 
 
 class TestPBKDF2(unittest.TestCase):
-
     def test_default(self):
         # original setting (and still default)
         pbkdf2 = PBKDF2(iterations=1000)
@@ -40,16 +38,9 @@ class TestPBKDF2(unittest.TestCase):
 
 
 class TestCreate(unittest.TestCase):
-
     def test_custom(self):
-
         def _new(val):
-            conf = config.new({
-                "hash": {
-                    "algorithm": val,
-                    "salt": ""
-                }
-            })
+            conf = config.new({"hash": {"algorithm": val, "salt": ""}})
             return new(conf.section("hash"))
 
         sha1 = _new("sha1")

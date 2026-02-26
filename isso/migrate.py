@@ -20,13 +20,12 @@ logger = logging.getLogger("isso")
 
 
 def strip(val):
-    if isinstance(val, (str, )):
+    if isinstance(val, (str,)):
         return val.strip()
     return val
 
 
 class Progress(object):
-
     def __init__(self, end):
         self.end = end or 1
 
@@ -34,12 +33,11 @@ class Progress(object):
         self.last = 0
 
     def update(self, i, message):
-
         if not self.istty or message is None:
             return
 
-        cols = int((os.popen('stty size', 'r').read()).split()[1])
-        message = message[:cols - 7]
+        cols = int((os.popen("stty size", "r").read()).split()[1])
+        message = message[: cols - 7]
 
         if time() - self.last > 0.2:
             sys.stdout.write("\r{0}".format(" " * cols))
@@ -55,8 +53,8 @@ class Progress(object):
 class Disqus(object):
     # Format documented at https://help.disqus.com/en/articles/1717164-comments-export
 
-    ns = '{http://disqus.com}'
-    internals = '{http://disqus.com/disqus-internals}'
+    ns = "{http://disqus.com}"
+    internals = "{http://disqus.com/disqus-internals}"
 
     def __init__(self, db, xmlfile, empty_id=False):
         self.threads = set([])
@@ -67,65 +65,59 @@ class Disqus(object):
         self.empty_id = empty_id
 
     def insert(self, thread, posts):
-
-        path = urlparse(thread.find('%slink' % Disqus.ns).text).path
+        path = urlparse(thread.find("%slink" % Disqus.ns).text).path
         remap = dict()
 
         if path not in self.db.threads:
-            thread_title = thread.find(Disqus.ns + 'title').text or ''
+            thread_title = thread.find(Disqus.ns + "title").text or ""
             self.db.threads.new(path, thread_title.strip())
 
-        for item in sorted(posts, key=lambda k: k['created']):
-
-            dsq_id = item.pop('dsq:id')
-            item['parent'] = remap.get(item.pop('dsq:parent', None))
+        for item in sorted(posts, key=lambda k: k["created"]):
+            dsq_id = item.pop("dsq:id")
+            item["parent"] = remap.get(item.pop("dsq:parent", None))
             rv = self.db.comments.add(path, item)
             remap[dsq_id] = rv["id"]
 
         self.comments.update(set(remap.keys()))
 
     def migrate(self):
-
         tree = ElementTree.parse(self.xmlfile)
         res = defaultdict(list)
 
-        for post in tree.findall(Disqus.ns + 'post'):
-            email = post.find('{0}author/{0}email'.format(Disqus.ns))
-            ip = post.find(Disqus.ns + 'ipAddress')
-            comment_text = post.find(Disqus.ns + 'message').text or ''
+        for post in tree.findall(Disqus.ns + "post"):
+            email = post.find("{0}author/{0}email".format(Disqus.ns))
+            ip = post.find(Disqus.ns + "ipAddress")
+            comment_text = post.find(Disqus.ns + "message").text or ""
 
             item = {
-                'dsq:id': post.attrib.get(Disqus.internals + 'id'),
-                'text': comment_text,
-                'author': post.find('{0}author/{0}name'.format(Disqus.ns)).text,
-                'email': email.text if email is not None else '',
-                'created': mktime(strptime(
-                    post.find(Disqus.ns + 'createdAt').text, '%Y-%m-%dT%H:%M:%SZ')),
-                'remote_addr': anonymize(ip.text if ip is not None else '0.0.0.0'),
-                'mode': 1 if post.find(Disqus.ns + "isDeleted").text == "false" else 4
+                "dsq:id": post.attrib.get(Disqus.internals + "id"),
+                "text": comment_text,
+                "author": post.find("{0}author/{0}name".format(Disqus.ns)).text,
+                "email": email.text if email is not None else "",
+                "created": mktime(strptime(post.find(Disqus.ns + "createdAt").text, "%Y-%m-%dT%H:%M:%SZ")),
+                "remote_addr": anonymize(ip.text if ip is not None else "0.0.0.0"),
+                "mode": 1 if post.find(Disqus.ns + "isDeleted").text == "false" else 4,
             }
 
-            if post.find(Disqus.ns + 'parent') is not None:
-                item['dsq:parent'] = post.find(
-                    Disqus.ns + 'parent').attrib.get(Disqus.internals + 'id')
+            if post.find(Disqus.ns + "parent") is not None:
+                item["dsq:parent"] = post.find(Disqus.ns + "parent").attrib.get(Disqus.internals + "id")
 
-            res[post.find('%sthread' % Disqus.ns).attrib.get(
-                Disqus.internals + 'id')].append(item)
+            res[post.find("%sthread" % Disqus.ns).attrib.get(Disqus.internals + "id")].append(item)
 
-        progress = Progress(len(tree.findall(Disqus.ns + 'thread')))
-        for i, thread in enumerate(tree.findall(Disqus.ns + 'thread')):
+        progress = Progress(len(tree.findall(Disqus.ns + "thread")))
+        for i, thread in enumerate(tree.findall(Disqus.ns + "thread")):
             # Workaround for not crashing with empty thread ids:
-            thread_id = thread.find(Disqus.ns + 'id')
+            thread_id = thread.find(Disqus.ns + "id")
             if not thread_id:
                 thread_id = dict(text="<empty thread id>", empty=True)
 
-            progress.update(i, thread_id.get('text'))
+            progress.update(i, thread_id.get("text"))
 
             # skip (possibly?) duplicate, but empty thread elements
-            if thread_id.get('empty') and not self.empty_id:
+            if thread_id.get("empty") and not self.empty_id:
                 continue
 
-            id = thread.attrib.get(Disqus.internals + 'id')
+            id = thread.attrib.get(Disqus.internals + "id")
             if id in res:
                 self.threads.add(id)
                 self.insert(thread, res[id])
@@ -133,11 +125,9 @@ class Disqus(object):
         # in case a comment has been deleted (and no further childs)
         self.db.comments._remove_stale()
 
-        progress.finish("{0} threads, {1} comments".format(
-            len(self.threads), len(self.comments)))
+        progress.finish("{0} threads, {1} comments".format(len(self.threads), len(self.comments)))
 
-        orphans = set(map(lambda e: e.attrib.get(Disqus.internals + "id"),
-                          tree.findall(Disqus.ns + "post"))) - self.comments
+        orphans = set(map(lambda e: e.attrib.get(Disqus.internals + "id"), tree.findall(Disqus.ns + "post"))) - self.comments
         if orphans and not self.threads:
             print("Isso couldn't import any thread, try again with --empty-id")
         elif orphans:
@@ -147,19 +137,20 @@ class Disqus(object):
                     continue
 
                 email = post.find("{0}author/{0}email".format(Disqus.ns))
-                comment_text = post.find(Disqus.ns + 'message').text or ''
+                comment_text = post.find(Disqus.ns + "message").text or ""
 
-                print(" * {0} by {1} <{2}>".format(
-                    post.attrib.get(Disqus.internals + "id"),
-                    post.find("{0}author/{0}name".format(Disqus.ns)).text,
-                    email.text if email is not None else ""))
-                print(textwrap.fill(comment_text,
-                                    initial_indent="  ", subsequent_indent="  "))
+                print(
+                    " * {0} by {1} <{2}>".format(
+                        post.attrib.get(Disqus.internals + "id"),
+                        post.find("{0}author/{0}name".format(Disqus.ns)).text,
+                        email.text if email is not None else "",
+                    )
+                )
+                print(textwrap.fill(comment_text, initial_indent="  ", subsequent_indent="  "))
                 print("")
 
 
 class WordPress(object):
-
     ns = "{http://wordpress.org/export/1.0/}"
 
     def __init__(self, db, xmlfile):
@@ -176,7 +167,6 @@ class WordPress(object):
             logger.warning("No WXR namespace found, assuming 1.0")
 
     def insert(self, thread):
-
         url = urlparse(thread.find("link").text)
         path = url.path
 
@@ -211,7 +201,6 @@ class WordPress(object):
                 return
 
     def migrate(self):
-
         tree = ElementTree.parse(self.xmlfile)
 
         skip = 0
@@ -226,15 +215,14 @@ class WordPress(object):
             progress.update(i, thread.find("title").text)
             self.insert(thread)
 
-        progress.finish("{0} threads, {1} comments".format(
-            len(items) - skip, self.count))
+        progress.finish("{0} threads, {1} comments".format(len(items) - skip, self.count))
 
     def _process_comment_content(self, text):
         # WordPress comment text renders a single newline between two blocks of
         # text as a <br> tag, so add an explicit Markdown line break on import
         # (Otherwise multiple blocks of text separated by single newlines are
         # all shown as one long line.)
-        text = re.sub(r'(?!^\n)\n(?!^\n)', '  \n', text, 0)
+        text = re.sub(r"(?!^\n)\n(?!^\n)", "  \n", text, 0)
 
         return strip(text)
 
@@ -244,14 +232,11 @@ class WordPress(object):
             "author": strip(el.find(self.ns + "comment_author").text),
             "email": strip(el.find(self.ns + "comment_author_email").text),
             "website": strip(el.find(self.ns + "comment_author_url").text),
-            "remote_addr": anonymize(
-                strip(el.find(self.ns + "comment_author_IP").text)),
-            "created": mktime(strptime(
-                strip(el.find(self.ns + "comment_date_gmt").text),
-                "%Y-%m-%d %H:%M:%S")),
+            "remote_addr": anonymize(strip(el.find(self.ns + "comment_author_IP").text)),
+            "created": mktime(strptime(strip(el.find(self.ns + "comment_date_gmt").text), "%Y-%m-%d %H:%M:%S")),
             "mode": 1 if el.find(self.ns + "comment_approved").text == "1" else 2,
             "id": int(el.find(self.ns + "comment_id").text),
-            "parent": int(el.find(self.ns + "comment_parent").text) or None
+            "parent": int(el.find(self.ns + "comment_parent").text) or None,
         }
 
     @classmethod
@@ -288,19 +273,19 @@ class Generic(object):
 
     def insert(self, thread):
         """Process a thread and insert its comments in the DB."""
-        thread_id = thread['id']
-        title = thread['title']
+        thread_id = thread["id"]
+        title = thread["title"]
         self.db.threads.new(thread_id, title)
 
-        comments = list(map(self._build_comment, thread['comments']))
-        comments.sort(key=lambda comment: comment['id'])
+        comments = list(map(self._build_comment, thread["comments"]))
+        comments.sort(key=lambda comment: comment["id"])
         self.count += len(comments)
         for comment in comments:
             self.db.comments.add(thread_id, comment)
 
     def migrate(self):
         """Process the input file and fill the DB."""
-        with io.open(self.json_file, 'rt', encoding='utf8') as fh:
+        with io.open(self.json_file, "rt", encoding="utf8") as fh:
             threads = json.load(fh)
         progress = Progress(len(threads))
 
@@ -312,13 +297,13 @@ class Generic(object):
 
     def _build_comment(self, raw_comment):
         return {
-            "text": raw_comment['text'],
-            "author": raw_comment['author'],
-            "email": raw_comment['email'],
-            "website": raw_comment['website'],
-            "created": mktime(strptime(raw_comment['created'], "%Y-%m-%d %H:%M:%S")),
+            "text": raw_comment["text"],
+            "author": raw_comment["author"],
+            "email": raw_comment["email"],
+            "website": raw_comment["website"],
+            "created": mktime(strptime(raw_comment["created"], "%Y-%m-%d %H:%M:%S")),
             "mode": 1,
-            "id": int(raw_comment['id']),
+            "id": int(raw_comment["id"]),
             "parent": None,
             "remote_addr": raw_comment["remote_addr"],
         }
@@ -334,7 +319,6 @@ class Generic(object):
 
 
 def autodetect(peek):
-
     if 'xmlns="http://disqus.com' in peek:
         return Disqus
 

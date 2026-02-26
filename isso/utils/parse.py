@@ -18,9 +18,12 @@ def thread(data, default="Untitled.", id=None):
     html = html.lastChild
 
     # aka getElementById, but limited to div and section tags
-    el = list(filter(lambda i: i.attributes["id"].value == "isso-thread",
-                     filter(lambda i: "id" in i.attributes,
-                            chain(*map(html.getElementsByTagName, ("div", "section"))))))
+    el = list(
+        filter(
+            lambda i: i.attributes["id"].value == "isso-thread",
+            filter(lambda i: "id" in i.attributes, chain(*map(html.getElementsByTagName, ("div", "section")))),
+        )
+    )
 
     if not el:
         return id, default
@@ -56,12 +59,11 @@ def thread(data, default="Untitled.", id=None):
         pass
 
     while el is not None:  # el.parentNode is None in the very end
-
         visited.append(el)
         rv = recurse(el)
 
         if rv:
-            return id, ''.join(gettext(rv)).strip()
+            return id, "".join(gettext(rv)).strip()
 
         el = el.parentNode
 

@@ -10,16 +10,10 @@ from isso import config
 from isso.db import SQLite3
 from isso.migrate import Disqus, WordPress, autodetect, Generic
 
-conf = config.new({
-    "general": {
-        "dbpath": "/dev/null",
-        "max-age": "1h"
-    }
-})
+conf = config.new({"general": {"dbpath": "/dev/null", "max-age": "1h"}})
 
 
 class TestMigration(unittest.TestCase):
-
     def test_disqus_empty_id(self):
         """
         Fails with empty thread id
@@ -40,8 +34,7 @@ class TestMigration(unittest.TestCase):
         # assert out == \
         #     "Isso couldn't import any thread, try again with --empty-id\n"
 
-        self.assertEqual(
-            len(db.execute("SELECT id FROM comments").fetchall()), 0)
+        self.assertEqual(len(db.execute("SELECT id FROM comments").fetchall()), 0)
 
     def test_disqus_empty_id_workaround(self):
         """
@@ -55,8 +48,7 @@ class TestMigration(unittest.TestCase):
         db = SQLite3(xxx.name, conf)
         Disqus(db, xml, empty_id=True).migrate()
 
-        self.assertEqual(
-            len(db.execute("SELECT id FROM comments").fetchall()), 5)
+        self.assertEqual(len(db.execute("SELECT id FROM comments").fetchall()), 5)
 
         self.assertEqual(db.threads["/"]["title"], "Hello, World!")
         self.assertEqual(db.threads["/"]["id"], 1)
@@ -74,7 +66,6 @@ class TestMigration(unittest.TestCase):
         self.assertEqual(deleted_comment["text"], "")
 
     def test_wordpress(self):
-
         xml = join(dirname(__file__), "wordpress.xml")
         xxx = tempfile.NamedTemporaryFile()
 
@@ -87,10 +78,8 @@ class TestMigration(unittest.TestCase):
         self.assertEqual(db.threads["/?p=4"]["title"], "...")
         self.assertEqual(db.threads["/?p=4"]["id"], 2)
 
-        self.assertEqual(
-            len(db.execute("SELECT id FROM threads").fetchall()), 2)
-        self.assertEqual(
-            len(db.execute("SELECT id FROM comments").fetchall()), 8)
+        self.assertEqual(len(db.execute("SELECT id FROM threads").fetchall()), 2)
+        self.assertEqual(len(db.execute("SELECT id FROM comments").fetchall()), 8)
 
         first = db.comments.get(1)
         self.assertEqual(first["author"], "Ohai")
@@ -125,10 +114,8 @@ class TestMigration(unittest.TestCase):
         self.assertEqual(db.threads["/posts/0007/"]["title"], "Nat+%26+Miguel")
         self.assertEqual(db.threads["/posts/0007/"]["id"], 2)
 
-        self.assertEqual(
-            len(db.execute("SELECT id FROM threads").fetchall()), 2)
-        self.assertEqual(
-            len(db.execute("SELECT id FROM comments").fetchall()), 2)
+        self.assertEqual(len(db.execute("SELECT id FROM threads").fetchall()), 2)
+        self.assertEqual(len(db.execute("SELECT id FROM comments").fetchall()), 2)
 
         comment = db.comments.get(1)
         self.assertEqual(comment["author"], "texas holdem")
@@ -145,7 +132,6 @@ class TestMigration(unittest.TestCase):
         self.assertEqual(comment["remote_addr"], "0.0.0.0")
 
     def test_detection(self):
-
         wp = """\
                 <?xml version="1.0" encoding="UTF-8"?>
                 <rss version="2.0"

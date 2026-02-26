@@ -44,21 +44,24 @@ from datetime import date
 from textwrap import indent
 
 
-class ColorFallback():
-    __getattr__ = lambda self, name: ''  # noqa: E731
+class ColorFallback:
+    __getattr__ = lambda self, name: ""  # noqa: E731
 
 
 try:
     from colorama import Fore, Style, init
+
     init()  # needed for Windows
 except ImportError:  # fallback so that the imported classes always exist
     Fore = Style = ColorFallback()
 
 
-Comment = namedtuple('Comment', ('uri', 'id', 'parent', 'created', 'text', 'author', 'email', 'website', 'likes', 'dislikes', 'replies'))
+Comment = namedtuple(
+    "Comment", ("uri", "id", "parent", "created", "text", "author", "email", "website", "likes", "dislikes", "replies")
+)
 
-INDENT = '    '
-QUERY = 'SELECT uri, comments.id, parent, created, text, author, email, website, likes, dislikes FROM comments INNER JOIN threads on comments.tid = threads.id'
+INDENT = "    "
+QUERY = "SELECT uri, comments.id, parent, created, text, author, email, website, likes, dislikes FROM comments INNER JOIN threads on comments.tid = threads.id"
 
 
 def main():
@@ -95,28 +98,38 @@ def main():
 
 
 def print_comment(prefix, comment):
-    author = comment.author or 'Anonymous'
-    email = comment.email or ''
-    website = comment.website or ''
+    author = comment.author or "Anonymous"
+    email = comment.email or ""
+    website = comment.website or ""
     when = date.fromtimestamp(comment.created)
-    popularity = ''
+    popularity = ""
     if comment.likes:
-        popularity = '+{.likes}'.format(comment)
+        popularity = "+{.likes}".format(comment)
     if comment.dislikes:
         if popularity:
-            popularity += '/'
-        popularity = '-{.dislikes}'.format(comment)
-    print(prefix + '{Style.BRIGHT}{author}{Style.RESET_ALL} {Style.DIM}- {email} {website}{Style.RESET_ALL} {when} {Style.DIM}{popularity}{Style.RESET_ALL}'.format(Style=Style, **locals()))
+            popularity += "/"
+        popularity = "-{.dislikes}".format(comment)
+    print(
+        prefix
+        + "{Style.BRIGHT}{author}{Style.RESET_ALL} {Style.DIM}- {email} {website}{Style.RESET_ALL} {when} {Style.DIM}{popularity}{Style.RESET_ALL}".format(
+            Style=Style, **locals()
+        )
+    )
     print(indent(comment.text, prefix))
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(description='Dump all Isso comments in chronological order, grouped by replies',
-                                     formatter_class=ArgparseHelpFormatter)
-    parser.add_argument('db_path', help='File path to Isso Sqlite DB')
-    parser.add_argument('--sort-by-last-reply', action='store_true', help='By default comments are sorted by "parent" comment date, this sort comments based on the last replies')
-    parser.add_argument('--url-prefix', default='', help='Optional domain name to prefix to pages URLs')
-    parser.add_argument('--no-colors', action='store_false', dest='colors', default=True, help='Disabled colored output')
+    parser = argparse.ArgumentParser(
+        description="Dump all Isso comments in chronological order, grouped by replies", formatter_class=ArgparseHelpFormatter
+    )
+    parser.add_argument("db_path", help="File path to Isso Sqlite DB")
+    parser.add_argument(
+        "--sort-by-last-reply",
+        action="store_true",
+        help='By default comments are sorted by "parent" comment date, this sort comments based on the last replies',
+    )
+    parser.add_argument("--url-prefix", default="", help="Optional domain name to prefix to pages URLs")
+    parser.add_argument("--no-colors", action="store_false", dest="colors", default=True, help="Disabled colored output")
     return parser.parse_args()
 
 
@@ -124,5 +137,5 @@ class ArgparseHelpFormatter(argparse.RawTextHelpFormatter, argparse.ArgumentDefa
     pass
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

@@ -9,7 +9,7 @@ logger = logging.getLogger("isso")
 
 class MistuneMarkdown(Markdown):
     _parameters = []
-    _plugins = ('strikethrough', 'subscript', 'superscript', 'url')
+    _plugins = ("strikethrough", "subscript", "superscript", "url")
 
     def __init__(self, conf=None):
         if conf is not None:
@@ -20,7 +20,7 @@ class MistuneMarkdown(Markdown):
 
             self._parameters = conf.getlist("parameters")
 
-        hard_wrap = True if 'hard_wrap' in self._parameters else False
+        hard_wrap = True if "hard_wrap" in self._parameters else False
 
         logging.info("Loading Mistune with plugins: %s and parameters: %s", self._plugins, self._parameters)
 

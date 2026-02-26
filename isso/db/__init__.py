@@ -25,13 +25,11 @@ class SQLite3:
     MAX_VERSION = 5
 
     def __init__(self, path, conf):
-
         self.path = os.path.expanduser(path)
         self.conf = conf
 
-        rv = self.execute([
-            "SELECT name FROM sqlite_master"
-            "   WHERE type='table' AND name IN ('threads', 'comments', 'preferences')"]
+        rv = self.execute(
+            ["SELECT name FROM sqlite_master   WHERE type='table' AND name IN ('threads', 'comments', 'preferences')"]
         ).fetchone()
 
         self.preferences = Preferences(self)
@@ -44,17 +42,19 @@ class SQLite3:
         else:
             self.migrate(to=SQLite3.MAX_VERSION)
 
-        self.execute([
-            'CREATE TRIGGER IF NOT EXISTS remove_stale_threads',
-            'AFTER DELETE ON comments',
-            'BEGIN',
-            '    DELETE FROM threads WHERE id NOT IN (SELECT tid FROM comments);',
-            'END'])
+        self.execute(
+            [
+                "CREATE TRIGGER IF NOT EXISTS remove_stale_threads",
+                "AFTER DELETE ON comments",
+                "BEGIN",
+                "    DELETE FROM threads WHERE id NOT IN (SELECT tid FROM comments);",
+                "END",
+            ]
+        )
 
     def execute(self, sql, args=()):
-
         if isinstance(sql, (list, tuple)):
-            sql = ' '.join(sql)
+            sql = " ".join(sql)
 
         with sqlite3.connect(self.path) as con:
             return con.execute(sql, args)
@@ -64,7 +64,6 @@ class SQLite3:
         return self.execute("PRAGMA user_version").fetchone()[0]
 
     def migrate(self, to):
-
         if self.version >= to:
             return
 
@@ -73,18 +72,19 @@ class SQLite3:
         # re-initialize voters blob due a bug in the bloomfilter signature
         # which added older commenter's ip addresses to the current voters blob
         if self.version == 0:
-
             from isso.utils import Bloomfilter
+
             bf = memoryview(Bloomfilter(iterable=["127.0.0.0"]).array)
 
             with sqlite3.connect(self.path) as con:
                 con.execute("BEGIN TRANSACTION")
                 try:
-                    con.execute('UPDATE comments SET voters=?', (bf, ))
-                    con.execute('PRAGMA user_version = 1')
+                    con.execute("UPDATE comments SET voters=?", (bf,))
+                    con.execute("PRAGMA user_version = 1")
                     con.execute("COMMIT")
-                    logger.info("Migrating DB version 0 to 1 by re-initializing voters blob, %i rows changed",
-                                con.total_changes)
+                    logger.info(
+                        "Migrating DB version 0 to 1 by re-initializing voters blob, %i rows changed", con.total_changes
+                    )
                 except sqlite3.Error as e:
                     con.execute("ROLLBACK")
                     logger.error("Migrating DB version 0 to 1 failed: %s", e)
@@ -92,18 +92,20 @@ class SQLite3:
 
         # move [general] session-key to database
         if self.version == 1:
-
             with sqlite3.connect(self.path) as con:
                 con.execute("BEGIN TRANSACTION")
                 try:
                     if self.conf.has_option("general", "session-key"):
-                        con.execute('UPDATE preferences SET value=? WHERE key=?', (
-                            self.conf.get("general", "session-key"), "session-key"))
+                        con.execute(
+                            "UPDATE preferences SET value=? WHERE key=?",
+                            (self.conf.get("general", "session-key"), "session-key"),
+                        )
 
-                    con.execute('PRAGMA user_version = 2')
+                    con.execute("PRAGMA user_version = 2")
                     con.execute("COMMIT")
-                    logger.info("Migrating DB version 1 to 2 by moving session-key to database, %i rows changed",
-                                con.total_changes)
+                    logger.info(
+                        "Migrating DB version 1 to 2 by moving session-key to database, %i rows changed", con.total_changes
+                    )
                 except sqlite3.Error as e:
                     con.execute("ROLLBACK")
                     logger.error("Migrating DB version 1 to 2 failed: %s", e)
@@ -116,17 +118,16 @@ class SQLite3:
                 return list(map(operator.itemgetter(0), rv))
 
             with sqlite3.connect(self.path) as con:
-                top = first(con.execute(
-                    "SELECT id FROM comments WHERE parent IS NULL").fetchall())
+                top = first(con.execute("SELECT id FROM comments WHERE parent IS NULL").fetchall())
                 flattened = defaultdict(set)
 
                 for id in top:
-
-                    ids = [id, ]
+                    ids = [
+                        id,
+                    ]
 
                     while ids:
-                        rv = first(con.execute(
-                            "SELECT id FROM comments WHERE parent=?", (ids.pop(), )))
+                        rv = first(con.execute("SELECT id FROM comments WHERE parent=?", (ids.pop(),)))
                         ids.extend(rv)
                         flattened[id].update(set(rv))
 
@@ -134,13 +135,13 @@ class SQLite3:
                 try:
                     for id in flattened.keys():
                         for n in flattened[id]:
-                            con.execute(
-                                "UPDATE comments SET parent=? WHERE id=?", (id, n))
+                            con.execute("UPDATE comments SET parent=? WHERE id=?", (id, n))
 
-                    con.execute('PRAGMA user_version = 3')
+                    con.execute("PRAGMA user_version = 3")
                     con.execute("COMMIT")
-                    logger.info("Migrating DB version 2 to 3 by limiting nesting level to 1, %i rows changed",
-                                con.total_changes)
+                    logger.info(
+                        "Migrating DB version 2 to 3 by limiting nesting level to 1, %i rows changed", con.total_changes
+                    )
                 except sqlite3.Error as e:
                     con.execute("ROLLBACK")
                     logger.error("Migrating DB version 2 to 3 failed: %s", e)
@@ -176,10 +177,11 @@ class SQLite3:
                     con.execute("ALTER TABLE comments_new RENAME TO comments")
                     con.execute("DROP TABLE comments_backup_v4")
 
-                    con.execute('PRAGMA user_version = 5')
+                    con.execute("PRAGMA user_version = 5")
                     con.execute("COMMIT")
-                    logger.info("Migrating DB version 4 to 5 by setting empty comments.text to '', %i rows changed",
-                                con.total_changes)
+                    logger.info(
+                        "Migrating DB version 4 to 5 by setting empty comments.text to '', %i rows changed", con.total_changes
+                    )
                 except sqlite3.Error as e:
                     con.execute("ROLLBACK")
                     logger.error("Migrating DB version 4 to 5 failed: %s", e)
@@ -188,15 +190,15 @@ class SQLite3:
     def migrate_to_version_4(self, con):
         # check if "notification" column exists in "comments" table
         rv = con.execute("PRAGMA table_info(comments)").fetchall()
-        if any([row[1] == 'notification' for row in rv]):
+        if any([row[1] == "notification" for row in rv]):
             logger.info("Migrating DB version 3 to 4 skipped, 'notification' field already exists in comments")
-            con.execute('PRAGMA user_version = 4')
+            con.execute("PRAGMA user_version = 4")
             return
 
         con.execute("BEGIN TRANSACTION")
         try:
-            con.execute('ALTER TABLE comments ADD COLUMN notification INTEGER DEFAULT 0;')
-            con.execute('PRAGMA user_version = 4')
+            con.execute("ALTER TABLE comments ADD COLUMN notification INTEGER DEFAULT 0;")
+            con.execute("PRAGMA user_version = 4")
             con.execute("COMMIT")
             logger.info("Migrating DB version 3 to 4 by adding 'notification' field to comments")
         except sqlite3.Error as e:

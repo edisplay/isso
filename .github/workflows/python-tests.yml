@@ -72,10 +72,13 @@ jobs:
       run: pip install pytest pytest-cov
 
     - name: Install style check dependencies
-      run: pip install flake8
+      run: pip install ruff
 
     - name: Run style check
       run: make flakes
+
+    - name: Run format check
+      run: make format-check
 
     - name: Run coverage check, fail if <70%
       run: |

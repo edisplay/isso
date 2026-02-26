@@ -36,22 +36,20 @@ class Dispatcher(DispatcherMiddleware):
         super(Dispatcher, self).__init__(self.default, mounts=self.isso)
 
     def __call__(self, environ, start_response):
-
         # clear X-Script-Name as the PATH_INFO is already adjusted
-        environ.pop('HTTP_X_SCRIPT_NAME', None)
+        environ.pop("HTTP_X_SCRIPT_NAME", None)
 
         return super(Dispatcher, self).__call__(environ, start_response)
 
     def default(self, environ, start_response):
-        resp = Response("\n".join(self.isso.keys()),
-                        404, content_type="text/plain")
+        resp = Response("\n".join(self.isso.keys()), 404, content_type="text/plain")
         return resp(environ, start_response)
 
 
 settings = os.environ.get("ISSO_SETTINGS")
 if settings:
     if os.path.isdir(settings):
-        conf_glob = os.path.join(settings, '*.cfg')
+        conf_glob = os.path.join(settings, "*.cfg")
         confs = glob(conf_glob)
         application = wsgi.SubURI(Dispatcher(*confs))
     else:
@@ -62,4 +60,4 @@ if settings:
                 sys.exit(1)
     application = wsgi.SubURI(Dispatcher(*confs))
 else:
-    logger.fatal('environment variable ISSO_SETTINGS must be set')
+    logger.fatal("environment variable ISSO_SETTINGS must be set")

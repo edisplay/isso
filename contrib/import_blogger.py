@@ -28,9 +28,9 @@ import time
 try:
     import feedparser
 except ImportError:
-    print("Error: Package feedparser not installed! You can install it via "
-          "'pip install feedparser' inside your virtualenv.")
+    print("Error: Package feedparser not installed! You can install it via 'pip install feedparser' inside your virtualenv.")
     import sys
+
     sys.exit(1)
 
 from urllib.parse import urlparse
@@ -43,21 +43,21 @@ class Post:
         self.comments = []
 
     def add_comment(self, comment):
-        comment['id'] = len(self.comments) + 1
+        comment["id"] = len(self.comments) + 1
         self.comments.append(comment)
 
 
 def encode_post(post):
     ret = {}
-    ret['id'] = post.url
-    ret['title'] = post.title
-    ret['comments'] = post.comments
+    ret["id"] = post.url
+    ret["title"] = post.title
+    ret["comments"] = post.comments
     return ret
 
 
 class ImportBlogger:
-    TYPE_COMMENT = 'http://schemas.google.com/blogger/2008/kind#comment'
-    TYPE_POST = 'http://schemas.google.com/blogger/2008/kind#post'
+    TYPE_COMMENT = "http://schemas.google.com/blogger/2008/kind#comment"
+    TYPE_POST = "http://schemas.google.com/blogger/2008/kind#post"
 
     def __init__(self, filename_in, filename_out, prefix):
         self.channel = feedparser.parse(filename_in)
@@ -77,7 +77,7 @@ class ImportBlogger:
                 self.process_post(item)
 
         data = [encode_post(p) for p in self.posts.values() if p.comments]
-        with open(self.filename_out, 'w') as fp:
+        with open(self.filename_out, "w") as fp:
             json.dump(data, fp, indent=2)
 
     def process_post(self, item):
@@ -99,13 +99,13 @@ class ImportBlogger:
 
     def process_comment(self, item):
         comment = {}
-        comment['author'] = item.author_detail.name
-        comment['email'] = item.author_detail.email
-        comment['website'] = item.author_detail.get('href', '')
-        t = time.strftime('%Y-%m-%d %H:%M:%S', item.published_parsed)
-        comment['created'] = t
-        comment['text'] = item.content[0].value
-        comment['remote_addr'] = '127.0.0.1'
+        comment["author"] = item.author_detail.name
+        comment["email"] = item.author_detail.email
+        comment["website"] = item.author_detail.get("href", "")
+        t = time.strftime("%Y-%m-%d %H:%M:%S", item.published_parsed)
+        comment["created"] = t
+        comment["text"] = item.content[0].value
+        comment["remote_addr"] = "127.0.0.1"
         return comment
 
     def post_id(self, item):
@@ -113,15 +113,13 @@ class ImportBlogger:
         return self.prefix + u.path
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     import argparse
-    parser = argparse.ArgumentParser(
-        description='Convert comments from blogger.com')
-    parser.add_argument('input', help='input file')
-    parser.add_argument('output', help='output file')
-    parser.add_argument('-p', dest='prefix',
-                        help='prefix to be added to paths (ID)',
-                        type=str, default='')
+
+    parser = argparse.ArgumentParser(description="Convert comments from blogger.com")
+    parser.add_argument("input", help="input file")
+    parser.add_argument("output", help="output file")
+    parser.add_argument("-p", dest="prefix", help="prefix to be added to paths (ID)", type=str, default="")
     args = parser.parse_args()
 
     importer = ImportBlogger(args.input, args.output, args.prefix)

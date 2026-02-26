@@ -7,17 +7,14 @@ from hashlib import pbkdf2_hmac as pbkdf2
 
 
 def _TypeError(name, expected, val):
-    return TypeError("'{0}' must be {1}, not {2}".format(
-        name, expected, val.__class__.__name__))
+    return TypeError("'{0}' must be {1}, not {2}".format(name, expected, val.__class__.__name__))
 
 
 class Hash(object):
-
     func = None
     salt = b"Eech7co8Ohloopo9Ol6baimi"
 
     def __init__(self, salt=None, func="sha1"):
-
         if func is not None:
             hashlib.new(func)  # may not be available
             self.func = func
@@ -43,7 +40,7 @@ class Hash(object):
     def uhash(self, val):
         """Calculate hash from unicode value and return hex value as unicode"""
 
-        if not isinstance(val, (str, )):
+        if not isinstance(val, (str,)):
             raise _TypeError("val", "str", val)
 
         return codecs.encode(self.hash(val.encode("utf-8")), "hex_codec").decode("utf-8")
@@ -59,7 +56,6 @@ class Hash(object):
 
 
 class PBKDF2(Hash):
-
     def __init__(self, salt=None, iterations=1000, dklen=6, func="sha1"):
         super(PBKDF2, self).__init__(salt)
 
@@ -68,8 +64,7 @@ class PBKDF2(Hash):
         self.func = func
 
     def compute(self, val):
-        return pbkdf2(hash_name=self.func, password=val, salt=self.salt,
-                      iterations=self.iterations, dklen=self.dklen)
+        return pbkdf2(hash_name=self.func, password=val, salt=self.salt, iterations=self.iterations, dklen=self.dklen)
 
 
 def new(conf):

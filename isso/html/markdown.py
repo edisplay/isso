@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 
 
 class Markdown(ABC):
-    """ Abstract base class for rendering Markdown to HTML """
+    """Abstract base class for rendering Markdown to HTML"""
 
     @property
     @abstractmethod

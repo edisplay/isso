@@ -12,6 +12,7 @@ from email.utils import formatdate
 from urllib.parse import quote
 
 import logging
+
 logger = logging.getLogger("isso")
 
 try:
@@ -27,23 +28,20 @@ def create_comment_action_url(uri, action, key):
 
 
 class SMTPConnection(object):
-
     def __init__(self, conf):
         self.conf = conf
 
     def __enter__(self):
-        klass = (smtplib.SMTP_SSL if self.conf.get(
-            'security') == 'ssl' else smtplib.SMTP)
-        self.client = klass(host=self.conf.get('host'),
-                            port=self.conf.getint('port'),
-                            timeout=self.conf.getint('timeout'))
+        klass = smtplib.SMTP_SSL if self.conf.get("security") == "ssl" else smtplib.SMTP
+        self.client = klass(host=self.conf.get("host"), port=self.conf.getint("port"), timeout=self.conf.getint("timeout"))
 
-        if self.conf.get('security') == 'starttls':
+        if self.conf.get("security") == "starttls":
             import ssl
+
             self.client.starttls(context=ssl.create_default_context())
 
-        username = self.conf.get('username')
-        password = self.conf.get('password')
+        username = self.conf.get("username")
+        password = self.conf.get("password")
         if username and password:
             self.client.login(username, password)
 
@@ -54,9 +52,7 @@ class SMTPConnection(object):
 
 
 class SMTP(object):
-
     def __init__(self, isso):
-
         self.isso = isso
         self.conf = isso.conf.section("smtp")
         self.public_endpoint = isso.conf.get("server", "public-endpoint") or local("host")
@@ -71,12 +67,15 @@ class SMTP(object):
             logger.exception("unable to connect to SMTP server")
 
         if uwsgi:
+
             def spooler(args):
                 try:
-                    self._sendmail(args[b"subject"].decode("utf-8"),
-                                   args["body"].decode("utf-8"),
-                                   args[b"to"].decode("utf-8"),
-                                   args[b"headers"].decode("utf-8"))
+                    self._sendmail(
+                        args[b"subject"].decode("utf-8"),
+                        args["body"].decode("utf-8"),
+                        args[b"to"].decode("utf-8"),
+                        args[b"headers"].decode("utf-8"),
+                    )
                 except smtplib.SMTPConnectError:
                     return uwsgi.SPOOL_RETRY
                 else:
@@ -91,11 +90,10 @@ class SMTP(object):
     # Add List-Unsubscribe email header
     def create_headers(self, parent_comment, recipient):
         uri = self.public_endpoint + "/id/%i" % parent_comment["id"]
-        key = self.isso.sign(('unsubscribe', recipient))
-        return (('List-Unsubscribe', uri + "/unsubscribe/" + quote(recipient) + "/" + key),)
+        key = self.isso.sign(("unsubscribe", recipient))
+        return (("List-Unsubscribe", uri + "/unsubscribe/" + quote(recipient) + "/" + key),)
 
     def format(self, thread, comment, parent_comment, recipient=None, admin=False):
-
         rv = io.StringIO()
 
         author = comment["author"] or "Anonymous"
@@ -113,8 +111,7 @@ class SMTP(object):
 
             rv.write("IP address: %s\n" % comment["remote_addr"])
 
-        rv.write("Link to comment: %s\n" %
-                 (local("origin") + thread["uri"] + "#isso-%i" % comment["id"]))
+        rv.write("Link to comment: %s\n" % (local("origin") + thread["uri"] + "#isso-%i" % comment["id"]))
         rv.write("\n")
         rv.write("---\n")
 
@@ -129,7 +126,7 @@ class SMTP(object):
 
         else:
             uri = self.public_endpoint + "/id/%i" % parent_comment["id"]
-            key = self.isso.sign(('unsubscribe', recipient))
+            key = self.isso.sign(("unsubscribe", recipient))
 
             rv.write("Unsubscribe from this conversation: %s\n" % (uri + "/unsubscribe/" + quote(recipient) + "/" + key))
 
@@ -140,7 +137,7 @@ class SMTP(object):
         if self.admin_notify:
             body = self.format(thread, comment, None, admin=True)
             subject = "New comment posted"
-            if thread['title']:
+            if thread["title"]:
                 subject = "%s on %s" % (subject, thread["title"])
             self.sendmail(subject, body, thread, comment, None)
 
@@ -159,8 +156,13 @@ class SMTP(object):
             comments_to_notify += self.isso.db.comments.fetch(thread["uri"], mode=1, parent=comment["parent"])
             for comment_to_notify in comments_to_notify:
                 email = comment_to_notify["email"]
-                if "email" in comment_to_notify and comment_to_notify["notification"] and email not in notified \
-                        and comment_to_notify["id"] != comment["id"] and email != comment["email"]:
+                if (
+                    "email" in comment_to_notify
+                    and comment_to_notify["notification"]
+                    and email not in notified
+                    and comment_to_notify["id"] != comment["id"]
+                    and email != comment["email"]
+                ):
                     body = self.format(thread, comment, parent_comment, email, admin=False)
                     headers = self.create_headers(parent_comment, email)
                     subject = "Re: New comment posted on %s" % thread["title"]
@@ -171,28 +173,31 @@ class SMTP(object):
         to = to or self.conf.get("to")
         if not subject:
             # Fallback, just in case as an empty subject does not work
-            subject = 'isso notification'
+            subject = "isso notification"
 
         if uwsgi:
             if not headers:
-                headers = ''
-            uwsgi.spool({b"subject": subject.encode("utf-8"),
-                         b"body": body.encode("utf-8"),
-                         b"to": to.encode("utf-8"),
-                         b"headers": headers.encode("utf-8")})
+                headers = ""
+            uwsgi.spool(
+                {
+                    b"subject": subject.encode("utf-8"),
+                    b"body": body.encode("utf-8"),
+                    b"to": to.encode("utf-8"),
+                    b"headers": headers.encode("utf-8"),
+                }
+            )
         else:
             start_new_thread(self._retry, (subject, body, to, headers))
 
     def _sendmail(self, subject, body, to_addr, headers=None):
-
         from_addr = self.conf.get("from")
 
         msg = EmailMessage()
-        msg.set_payload(body, 'utf-8')
-        msg['From'] = from_addr
-        msg['To'] = to_addr
-        msg['Date'] = formatdate(localtime=True)
-        msg['Subject'] = subject
+        msg.set_payload(body, "utf-8")
+        msg["From"] = from_addr
+        msg["To"] = to_addr
+        msg["Date"] = formatdate(localtime=True)
+        msg["Subject"] = subject
 
         for key, val in headers if headers else ():
             msg.add_header(key, val)
@@ -211,13 +216,11 @@ class SMTP(object):
 
 
 class Stdout(object):
-
     def __init__(self, isso):
         self.isso = isso
         self.public_endpoint = isso.conf.get("server", "public-endpoint") or local("host")
 
     def __iter__(self):
-
         yield "comments.new:new-thread", self._new_thread
         yield "comments.new:finish", self._new_comment
         yield "comments.edit", self._edit_comment
@@ -240,11 +243,10 @@ class Stdout(object):
             logger.info("Activate comment: %s" % create_comment_action_url(uri, "activate", key))
 
     def _edit_comment(self, comment):
-        logger.info('comment %i edited: %s',
-                    comment["id"], json.dumps(comment))
+        logger.info("comment %i edited: %s", comment["id"], json.dumps(comment))
 
     def _delete_comment(self, id):
-        logger.info('comment %i deleted', id)
+        logger.info("comment %i deleted", id)
 
     def _activate_comment(self, thread, comment):
         logger.info("comment %(id)s activated" % thread)

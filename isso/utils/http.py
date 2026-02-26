@@ -23,9 +23,7 @@ class curl(object):
                 return resp.status
     """
 
-    headers = {
-        "User-Agent": "Isso/{0} (+https://isso-comments.de)".format(__version__)
-    }
+    headers = {"User-Agent": "Isso/{0} (+https://isso-comments.de)".format(__version__)}
 
     def __init__(self, method, host, path, timeout=3):
         self.method = method
@@ -47,7 +45,7 @@ class curl(object):
             try:
                 resp = self.con.getresponse()
                 if resp.status == 301:
-                    location = resp.getheader('Location')
+                    location = resp.getheader("Location")
                     if location:
                         self.con.close()
                         self.path = urlparse(location).path

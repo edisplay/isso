@@ -11,7 +11,7 @@ from importlib.resources import files
 
 logger = logging.getLogger("isso")
 
-default_config_file = str(files('isso').joinpath('isso.cfg'))
+default_config_file = str(files("isso").joinpath("isso.cfg"))
 
 
 def timedelta(string):
@@ -86,10 +86,10 @@ class Section(object):
 class IssoParser(ConfigParser):
     """Parse INI-style configuration with some modifications for Isso.
 
-        * Parse human-readable timedelta such as "15m" as "15 minutes"
-        * Handle indented lines as "lists"
-        * Disable string interpolation ('%s') for values
-        * Support environment variable substitution
+    * Parse human-readable timedelta such as "15m" as "15 minutes"
+    * Handle indented lines as "lists"
+    * Disable string interpolation ('%s') for values
+    * Support environment variable substitution
     """
 
     def __init__(self, *args, **kwargs):
@@ -118,10 +118,10 @@ class IssoParser(ConfigParser):
                 return int(delta.total_seconds())
 
     def getlist(self, section, key):
-        return list(map(str.strip, self.get(section, key).split(',')))
+        return list(map(str.strip, self.get(section, key).split(",")))
 
     def getiter(self, section, key):
-        for item in map(str.strip, self.get(section, key).split('\n')):
+        for item in map(str.strip, self.get(section, key).split("\n")):
             if item:
                 yield item
 
@@ -137,7 +137,6 @@ def default_file():
 
 
 def new(options=None):
-
     cp = IssoParser()
 
     if options:
@@ -147,20 +146,18 @@ def new(options=None):
 
 
 def load(default, user=None):
-
     # return set of (section, option)
     def setify(cp):
-        return set((section, option) for section in cp.sections()
-                   for option in cp.options(section))
+        return set((section, option) for section in cp.sections() for option in cp.options(section))
 
     parser = new()
-    with open(default, 'r') as f:
+    with open(default, "r") as f:
         parser.read_file(f)
 
     a = setify(parser)
 
     if user:
-        with open(user, 'r') as f:
+        with open(user, "r") as f:
             parser.read_file(f)
 
     for item in setify(parser).difference(a):
@@ -170,27 +167,27 @@ def load(default, user=None):
         if item == ("smtp", "ssl"):
             logger.warning("use `security = none | starttls | ssl` instead")
         if item == ("general", "session-key"):
-            logger.info("Your `session-key` has been stored in the "
-                        "database itself, this option is now unused")
+            logger.info("Your `session-key` has been stored in the database itself, this option is now unused")
 
     try:
-        parser.add_section('smtp')
+        parser.add_section("smtp")
     except DuplicateSectionError:
         pass
     try:
         fromaddr = parser.get("smtp", "from")
     except (NoOptionError, NoSectionError):
-        fromaddr = ''
+        fromaddr = ""
     if not parseaddr(fromaddr)[0]:
-        parser.set("smtp", "from",
-                   formataddr(("Ich schrei sonst!", fromaddr)))
+        parser.set("smtp", "from", formataddr(("Ich schrei sonst!", fromaddr)))
 
     # Warn on trailing slash which can result in malformed double-slashed URLs
     if parser.get("server", "public-endpoint").endswith("/"):
         public_endpoint = parser.get("server", "public-endpoint")
-        logger.warning("In your config file, '[server] public-endpoint' has a slash at the end, "
-                       "please remove it: '%s' -> '%s'",
-                       public_endpoint, public_endpoint.rstrip("/"))
+        logger.warning(
+            "In your config file, '[server] public-endpoint' has a slash at the end, please remove it: '%s' -> '%s'",
+            public_endpoint,
+            public_endpoint.rstrip("/"),
+        )
         # XXX Actually fail here in a future version
         logger.warning("A future version of Isso might quit with an error if 'public-endpoint' is set incorrectly")
         # Remove trailing slash

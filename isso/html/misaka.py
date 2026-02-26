@@ -17,7 +17,7 @@ class Unofficial(misaka.HtmlRenderer):
     """
 
     def blockcode(self, text, lang):
-        lang = ' class="language-{0}"'.format(html.escape(lang)) if lang else ''
+        lang = ' class="language-{0}"'.format(html.escape(lang)) if lang else ""
         return "<pre><code{1}>{0}</code></pre>\n".format(html.escape(text, False), lang)
 
 
@@ -31,8 +31,8 @@ class MisakaMarkdown(Markdown):
                      the Markup and Markup.misaka sections.
         """
         if conf is not None:
-            misaka_markup_section = conf.section('markup.misaka')
-            markup_section = conf.section('markup')
+            misaka_markup_section = conf.section("markup.misaka")
+            markup_section = conf.section("markup")
 
             self._flags = misaka_markup_section.getlist("flags")
             self._extensions = misaka_markup_section.getlist("options")
@@ -42,26 +42,34 @@ class MisakaMarkdown(Markdown):
                 markup_flags = markup_section.getlist("flags")
             if markup_flags:
                 if self._flags:
-                    logger.warning('The configuration setting flags is set in both sections Markup and Markup.misaka. '
-                                   'The setting in section Markup has been deprecated and is ignored.')
+                    logger.warning(
+                        "The configuration setting flags is set in both sections Markup and Markup.misaka. "
+                        "The setting in section Markup has been deprecated and is ignored."
+                    )
                 else:
                     self._flags = markup_section.getlist("flags")
-                    logger.warning('The configuration setting flags in section Markup has been deprecated. Please move '
-                                   'the setting to the new section Markup.misaka or preferably replace Misaka with '
-                                   'Mistune entirely.')
+                    logger.warning(
+                        "The configuration setting flags in section Markup has been deprecated. Please move "
+                        "the setting to the new section Markup.misaka or preferably replace Misaka with "
+                        "Mistune entirely."
+                    )
 
             markup_options = None
             if markup_section.has_option("options"):
                 markup_options = markup_section.getlist("options")
             if markup_options:
                 if self._extensions:
-                    logger.warning('The configuration setting options is set in both sections Markup and '
-                                   'Markup.misaka. The setting in section Markup has been deprecated and is ignored.')
+                    logger.warning(
+                        "The configuration setting options is set in both sections Markup and "
+                        "Markup.misaka. The setting in section Markup has been deprecated and is ignored."
+                    )
                 else:
                     self._extensions = markup_section.getlist("options")
-                    logger.warning('The configuration setting options in section Markup has been deprecated. Please '
-                                   'move the setting to the new section Markup.misaka or preferably replace Misaka '
-                                   'with Mistune entirely.')
+                    logger.warning(
+                        "The configuration setting options in section Markup has been deprecated. Please "
+                        "move the setting to the new section Markup.misaka or preferably replace Misaka "
+                        "with Mistune entirely."
+                    )
 
             # Normalize render flags and extensions for Misaka 2.0, which uses
             # `dashed-case` instead of `snake_case` (Misaka 1.x) for options.
